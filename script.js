@@ -1,3 +1,4 @@
+// --- CONFIGURACIÓN DE ESTADÍSTICAS ---
 const stats = [
     { id: 'strength', name: 'Strength', color: '#ff4500', type: 'stat' },    
     { id: 'dexterity', name: 'Dexterity', color: '#ffcc00', type: 'stat' },   
@@ -176,8 +177,9 @@ evasionInput.addEventListener('input', saveBoardState);
 pilotNotes.addEventListener('input', saveBoardState);
 creditsInput.addEventListener('input', saveBoardState);
 
-// --- LÓGICA DE APERTURA DEL INVENTARIO (CLICK GLOBAL) ---
-// Si está en desktop y cerrado, tocar la barra abre todo
+
+// --- LÓGICA DE APERTURA DEL INVENTARIO CORREGIDA ---
+// Clic en cualquier parte de la tarjeta negra
 inventoryCard.addEventListener('click', () => {
     if (window.innerWidth >= 1100 && inventoryCard.classList.contains('collapsed-card')) {
         inventoryCard.classList.remove('collapsed-card');
@@ -185,13 +187,17 @@ inventoryCard.addEventListener('click', () => {
     }
 });
 
+// Clic directo en la cabecera o la flecha
 inventoryToggle.addEventListener('click', (e) => {
     if (window.innerWidth >= 1100) {
-        if (!inventoryCard.classList.contains('collapsed-card')) {
+        // En desktop alterna entre abrir y cerrar directamente
+        if (inventoryCard.classList.contains('collapsed-card')) {
+            inventoryCard.classList.remove('collapsed-card');
+        } else {
             inventoryCard.classList.add('collapsed-card');
-            saveBoardState();
         }
-        e.stopPropagation(); // Evita que dispare la apertura inmediata de la card
+        saveBoardState();
+        e.stopPropagation(); // Evita que dispare la apertura inmediata de la card por el EventListener de arriba
     } 
     else {
         inventoryBody.classList.toggle('collapsed');
@@ -199,6 +205,7 @@ inventoryToggle.addEventListener('click', (e) => {
         saveBoardState();
     }
 });
+
 
 function createInventoryItem(value = "") {
     const itemDiv = document.createElement('article');
@@ -230,7 +237,7 @@ addItemBtn.addEventListener('click', () => {
     saveBoardState();
 });
 
-// Bloqueos
+// Bloqueos 
 lockIconContainer.addEventListener('click', () => {
     if (pilotNameInput.readOnly) return; 
     
@@ -346,12 +353,15 @@ function saveBoardState() {
     const state = {
         pilotName: pilotNameInput.value,
         mechClass: mechClassInput.value,
+        
         levelValue: levelInput.value,
         gritValue: gritInput.value,
         evasionValue: evasionInput.value,
+        
         isNameLocked: pilotNameInput.readOnly,
         isCapacityLocked: isCapacityLocked,
         themeColor: document.documentElement.style.getPropertyValue('--border-primary') || '#00ffff',
+        
         notes: pilotNotes.value,
         credits: creditsInput.value,
         
@@ -360,6 +370,7 @@ function saveBoardState() {
                         .filter(val => val.trim() !== ''), 
                         
         isInventoryOpen: !inventoryCard.classList.contains('collapsed-card') && !inventoryBody.classList.contains('collapsed'),
+
         statValues: Array.from(document.querySelectorAll('.stat-dice')).map(input => input.value),
         pips: Array.from(document.querySelectorAll('.pip')).map(pip => ({
             state: pip.getAttribute('data-state'),
@@ -385,9 +396,11 @@ function loadBoardState() {
 
     pilotNameInput.value = state.pilotName || '';
     mechClassInput.value = state.mechClass || '';
+    
     if (state.levelValue !== undefined) levelInput.value = state.levelValue;
     if (state.gritValue !== undefined) gritInput.value = state.gritValue;
     if (state.evasionValue !== undefined) evasionInput.value = state.evasionValue;
+
     if (state.notes !== undefined) pilotNotes.value = state.notes;
     if (state.credits !== undefined) creditsInput.value = state.credits;
 
@@ -434,6 +447,7 @@ function loadBoardState() {
     if (state.isNameLocked) {
         pilotNameInput.readOnly = true;
         mechClassInput.readOnly = true;
+        
         pilotNameInput.classList.add('locked');
         mechClassInput.classList.add('locked');
         
