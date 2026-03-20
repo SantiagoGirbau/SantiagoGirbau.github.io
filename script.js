@@ -1,7 +1,6 @@
-// --- CONFIGURACIÓN DE ESTADÍSTICAS ---
 const stats = [
     { id: 'strength', name: 'Strength', color: '#ff4500', type: 'stat' },    
-    { id: 'agility', name: 'Agility', color: '#ffcc00', type: 'stat' },   
+    { id: 'dexterity', name: 'Dexterity', color: '#ffcc00', type: 'stat' },   
     { id: 'mechanics', name: 'Mechanics', color: '#00ffff', type: 'stat' },        
     { id: 'tech', name: 'Tech', color: '#00ff37', type: 'stat' },        
     { id: 'meds', name: 'Meds', color: '#ff2a2a', type: 'stat' },
@@ -21,42 +20,42 @@ const shieldCycle = ['empty', 'shield', 'fatigue'];
 const shieldCombatCycle = ['shield', 'fatigue'];
 
 const vitalsHtml = `
-    <div class="col vitals-field">
-        <div class="vital-row">
-            <div class="label-container">
-                <div class="label" style="color: var(--pip-health); font-weight:bold;">HEALTH</div>
-                <div style="width: 65px;"></div>
-            </div>
-            <div class="pips-container">
-                ${Array(12).fill('<div class="pip" data-state="empty" data-type="health" data-color="var(--pip-health)"></div>').join('')}
-            </div>
-        </div>
-        <div class="vital-row">
-            <div class="label-container">
-                <div class="label" style="color: #00bfff; font-weight:bold;">SHIELD</div>
-                <div style="width: 65px;"></div>
-            </div>
-            <div class="pips-container">
-                ${Array(12).fill('<div class="pip" data-state="empty" data-type="shield" data-color="#00bfff"></div>').join('')}
-            </div>
-        </div>
-    </div>
+    <section class="col vitals-field">
+        <section class="vital-row">
+            <header class="label-container">
+                <span class="label" style="color: var(--pip-health); font-weight:bold;">HEALTH</span>
+                <span style="width: 65px;"></span>
+            </header>
+            <section class="pips-container health-pips">
+                ${Array(12).fill('<i class="pip" data-state="empty" data-type="health" data-color="var(--pip-health)"></i>').join('')}
+            </section>
+        </section>
+        <section class="vital-row">
+            <header class="label-container">
+                <span class="label" style="color: #00bfff; font-weight:bold;">SHIELD</span>
+                <span style="width: 65px;"></span>
+            </header>
+            <section class="pips-container health-pips">
+                ${Array(12).fill('<i class="pip" data-state="empty" data-type="shield" data-color="#00bfff"></i>').join('')}
+            </section>
+        </section>
+    </section>
 `;
 container.innerHTML += vitalsHtml;
 
 stats.forEach(attr => {
-    const row = document.createElement('div');
+    const row = document.createElement('section');
     row.className = 'row';
-    const labelHtml = `<div class="label" style="color: ${attr.color}">${attr.name}</div>
-                 <input type="number" class="attr-value stat-dice" value="0" min="0" max="12" step="2" style="border-color:${attr.color}; color:${attr.color}">`;
+    const labelHtml = `<header class="label-container"><span class="label" style="color: ${attr.color}">${attr.name}</span>
+                 <input type="number" class="attr-value stat-dice" value="0" min="0" max="12" step="2" style="border-color:${attr.color}; color:${attr.color}"></header>`;
 
-    let pipsHtml = '<div class="pips-container">';
+    let pipsHtml = '<section class="pips-container">';
     for (let i = 0; i < 10; i++) {
-        pipsHtml += `<div class="pip" data-state="empty" data-type="${attr.type}" data-color="${attr.color}" style="color:${attr.color}"></div>`;
+        pipsHtml += `<i class="pip" data-state="empty" data-type="${attr.type}" data-color="${attr.color}" style="color:${attr.color}"></i>`;
     }
-    pipsHtml += '</div>';
+    pipsHtml += '</section>';
 
-    row.innerHTML = `<div class="label-container">${labelHtml}</div>${pipsHtml}`;
+    row.innerHTML = `${labelHtml}${pipsHtml}`;
     container.appendChild(row);
 });
 
@@ -141,10 +140,8 @@ const lockIconSvg = document.getElementById('lock-icon-svg');
 const pilotNameInput = document.getElementById('pilot-name');
 const mechClassInput = document.getElementById('mech-class');
 
-// Capturamos todos los inputs y labels de la zona de LVL, GRIT y EVA
 const allGritInputs = document.querySelectorAll('.grit-input');
 const allGritLabels = document.querySelectorAll('.grit-label');
-
 const levelInput = document.getElementById('level-value');
 const gritInput = document.getElementById('grit-value');
 const evasionInput = document.getElementById('evasion-value');
@@ -156,6 +153,7 @@ const pipsLockSvg = document.getElementById('pips-lock-svg');
 const unlockPipsBtn = document.getElementById('unlock-pips-btn');
 const restBtn = document.getElementById('rest-btn');
 
+const inventoryCard = document.getElementById('inventory-card');
 const inventoryToggle = document.getElementById('inventory-toggle');
 const inventoryBody = document.getElementById('inventory-body');
 const inventoryChevron = document.getElementById('inventory-chevron');
@@ -170,7 +168,6 @@ const svgPathLocked = '<path d="M17 11V7a5 5 0 0 0-10 0v4"></path><rect x="3" y=
 settingsToggle.addEventListener('click', () => settingsPanel.classList.add('open'));
 closeSettings.addEventListener('click', () => settingsPanel.classList.remove('open'));
 
-// Listeners de guardado rápido
 pilotNameInput.addEventListener('input', saveBoardState);
 mechClassInput.addEventListener('input', saveBoardState);
 levelInput.addEventListener('input', saveBoardState);
@@ -179,15 +176,32 @@ evasionInput.addEventListener('input', saveBoardState);
 pilotNotes.addEventListener('input', saveBoardState);
 creditsInput.addEventListener('input', saveBoardState);
 
-// Inventario
-inventoryToggle.addEventListener('click', () => {
-    inventoryBody.classList.toggle('collapsed');
-    inventoryToggle.classList.toggle('collapsed-header');
-    saveBoardState();
+// --- LÓGICA DE APERTURA DEL INVENTARIO (CLICK GLOBAL) ---
+// Si está en desktop y cerrado, tocar la barra abre todo
+inventoryCard.addEventListener('click', () => {
+    if (window.innerWidth >= 1100 && inventoryCard.classList.contains('collapsed-card')) {
+        inventoryCard.classList.remove('collapsed-card');
+        saveBoardState();
+    }
+});
+
+inventoryToggle.addEventListener('click', (e) => {
+    if (window.innerWidth >= 1100) {
+        if (!inventoryCard.classList.contains('collapsed-card')) {
+            inventoryCard.classList.add('collapsed-card');
+            saveBoardState();
+        }
+        e.stopPropagation(); // Evita que dispare la apertura inmediata de la card
+    } 
+    else {
+        inventoryBody.classList.toggle('collapsed');
+        inventoryToggle.classList.toggle('collapsed-header');
+        saveBoardState();
+    }
 });
 
 function createInventoryItem(value = "") {
-    const itemDiv = document.createElement('div');
+    const itemDiv = document.createElement('article');
     itemDiv.className = 'inventory-item';
     
     const input = document.createElement('input');
@@ -216,7 +230,7 @@ addItemBtn.addEventListener('click', () => {
     saveBoardState();
 });
 
-// Bloqueos (Actualizado para manejar múltiples inputs)
+// Bloqueos
 lockIconContainer.addEventListener('click', () => {
     if (pilotNameInput.readOnly) return; 
     
@@ -332,16 +346,12 @@ function saveBoardState() {
     const state = {
         pilotName: pilotNameInput.value,
         mechClass: mechClassInput.value,
-        
-        // Stats del piloto (LVL, GRIT, EVA)
         levelValue: levelInput.value,
         gritValue: gritInput.value,
         evasionValue: evasionInput.value,
-        
         isNameLocked: pilotNameInput.readOnly,
         isCapacityLocked: isCapacityLocked,
         themeColor: document.documentElement.style.getPropertyValue('--border-primary') || '#00ffff',
-        
         notes: pilotNotes.value,
         credits: creditsInput.value,
         
@@ -349,8 +359,7 @@ function saveBoardState() {
                         .map(inp => inp.value)
                         .filter(val => val.trim() !== ''), 
                         
-        isInventoryOpen: !inventoryBody.classList.contains('collapsed'),
-
+        isInventoryOpen: !inventoryCard.classList.contains('collapsed-card') && !inventoryBody.classList.contains('collapsed'),
         statValues: Array.from(document.querySelectorAll('.stat-dice')).map(input => input.value),
         pips: Array.from(document.querySelectorAll('.pip')).map(pip => ({
             state: pip.getAttribute('data-state'),
@@ -376,12 +385,9 @@ function loadBoardState() {
 
     pilotNameInput.value = state.pilotName || '';
     mechClassInput.value = state.mechClass || '';
-    
-    // Carga de LVL, GRIT y EVA
     if (state.levelValue !== undefined) levelInput.value = state.levelValue;
     if (state.gritValue !== undefined) gritInput.value = state.gritValue;
     if (state.evasionValue !== undefined) evasionInput.value = state.evasionValue;
-
     if (state.notes !== undefined) pilotNotes.value = state.notes;
     if (state.credits !== undefined) creditsInput.value = state.credits;
 
@@ -398,8 +404,12 @@ function loadBoardState() {
     }
 
     if (state.isInventoryOpen === false) {
-        inventoryBody.classList.add('collapsed');
-        inventoryToggle.classList.add('collapsed-header');
+        if (window.innerWidth >= 1100) {
+            inventoryCard.classList.add('collapsed-card');
+        } else {
+            inventoryBody.classList.add('collapsed');
+            inventoryToggle.classList.add('collapsed-header');
+        }
     }
 
     const statInputs = document.querySelectorAll('.stat-dice');
@@ -424,7 +434,6 @@ function loadBoardState() {
     if (state.isNameLocked) {
         pilotNameInput.readOnly = true;
         mechClassInput.readOnly = true;
-        
         pilotNameInput.classList.add('locked');
         mechClassInput.classList.add('locked');
         
