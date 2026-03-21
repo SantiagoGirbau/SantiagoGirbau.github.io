@@ -8,7 +8,7 @@ const stats = [
     { id: 'spotting', name: 'Spotting', color: '#00ff7f', type: 'stat' }, 
     { id: 'charisma', name: 'Charisma', color: '#ff00ff', type: 'stat' },
     { id: 'paracausal', name: 'Paracausal', color: '#ff00aa', type: 'stat' },   
-    { id: 'miscellaneous', name: 'Miscellaneous', color: '#967bb6', type: 'stat' }
+    { id: 'miscellaneous', name: 'Misc', color: '#8527f8', type: 'stat' }
 ];
 
 const container = document.getElementById('stats-container');
@@ -28,7 +28,7 @@ const vitalsHtml = `
                 <span style="width: 65px;"></span>
             </header>
             <section class="pips-container health-pips">
-                ${Array(12).fill('<i class="pip" data-state="empty" data-type="health" data-color="var(--pip-health)"></i>').join('')}
+                ${Array(20).fill('<i class="pip" data-state="empty" data-type="health" data-color="var(--pip-health)"></i>').join('')}
             </section>
         </section>
         <section class="vital-row">
@@ -37,7 +37,7 @@ const vitalsHtml = `
                 <span style="width: 65px;"></span>
             </header>
             <section class="pips-container health-pips">
-                ${Array(12).fill('<i class="pip" data-state="empty" data-type="shield" data-color="#00bfff"></i>').join('')}
+                ${Array(10).fill('<i class="pip" data-state="empty" data-type="shield" data-color="#00bfff"></i>').join('')}
             </section>
         </section>
     </section>
@@ -51,9 +51,10 @@ stats.forEach(attr => {
                  <input type="number" class="attr-value stat-dice" value="0" min="0" max="12" step="2" style="border-color:${attr.color}; color:${attr.color}"></header>`;
 
     let pipsHtml = '<section class="pips-container">';
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 12; i++) {
         pipsHtml += `<i class="pip" data-state="empty" data-type="${attr.type}" data-color="${attr.color}" style="color:${attr.color}"></i>`;
     }
+    
     pipsHtml += '</section>';
 
     row.innerHTML = `${labelHtml}${pipsHtml}`;
