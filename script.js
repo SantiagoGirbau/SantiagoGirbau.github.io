@@ -51,7 +51,7 @@ stats.forEach(attr => {
                  <input type="number" class="attr-value stat-dice" value="0" min="0" max="12" step="2" style="border-color:${attr.color}; color:${attr.color}"></header>`;
 
     let pipsHtml = '<section class="pips-container">';
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 10; i++) {
         pipsHtml += `<i class="pip" data-state="empty" data-type="${attr.type}" data-color="${attr.color}" style="color:${attr.color}"></i>`;
     }
     

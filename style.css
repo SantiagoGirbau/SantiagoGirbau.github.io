@@ -63,7 +63,7 @@ figure { margin: 0; padding: 0; }
 
 #main-card {
     flex: 1 1 650px;
-    max-width: 650px;
+    max-width: 600px;
 }
 
 #inventory-card {
