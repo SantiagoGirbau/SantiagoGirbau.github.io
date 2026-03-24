@@ -5,10 +5,10 @@ const stats = [
     { id: 'mechanics', name: 'Mechanics', color: '#00ffff', type: 'stat' },        
     { id: 'tech', name: 'Tech', color: '#00ff37', type: 'stat' },        
     { id: 'meds', name: 'Meds', color: '#ff2a2a', type: 'stat' },
-    { id: 'spotting', name: 'Spotting', color: '#00ff7f', type: 'stat' }, 
+    { id: 'spotting', name: 'Spotting', color: '#2600ff', type: 'stat' }, 
     { id: 'charisma', name: 'Charisma', color: '#ff00ff', type: 'stat' },
-    { id: 'paracausal', name: 'Paracausal', color: '#ff00aa', type: 'stat' },   
-    { id: 'miscellaneous', name: 'Misc', color: '#8527f8', type: 'stat' }
+    { id: 'paracausal', name: 'Paracausal', color: '#ff006a', type: 'stat' },   
+    { id: 'miscellaneous', name: 'Misc', color: '#7300ff', type: 'stat' }
 ];
 
 const container = document.getElementById('stats-container');
