@@ -132,7 +132,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 
 .header-name.locked, .header-class.locked { color: var(--border-primary); cursor: default; border-color: transparent; background: rgba(255,255,255,0.03); }
 
-.pilot-stats-row { display: flex; gap: 15px; flex-wrap: wrap; }
+.pilot-stats-row { display: flex; gap: 1px; flex-wrap: wrap; width: 100%;}
 .grit-container { display: flex; align-items: center; gap: 10px; }
 .grit-label { font-size: 0.9rem; font-weight: bold; text-transform: uppercase; color: var(--text-main); transition: color 0.3s; }
 .grit-input { width: 50px; text-align: center; background: rgba(0,0,0,0.5) !important; border: 1px solid var(--text-main) !important; color: var(--text-main) !important; }
