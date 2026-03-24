@@ -101,7 +101,7 @@ input[type="file"], select, button.mgr-btn {
     outline: none; transition: all 0.2s ease;
 }
 button.mgr-btn:hover:not(:disabled), select:hover { border-color: var(--border-primary); color: var(--border-primary); }
-button.mgr-btn.exit { border-color: var(--border-secondary); color: var(--border-secondary); width: 2vw;} 
+button.mgr-btn.exit { border-color: var(--border-secondary); color: var(--border-secondary); width: 18%;} 
 button.mgr-btn.danger { border-color: var(--border-secondary); color: var(--border-secondary); }
 button.mgr-btn.exit:hover { background: rgba(255, 69, 0, 0.2); }
 button.mgr-btn.danger:hover:not(:disabled) { background: rgba(255, 69, 0, 0.2); }
