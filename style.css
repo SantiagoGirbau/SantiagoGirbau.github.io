@@ -35,11 +35,21 @@ body {
 input, select, textarea { user-select: auto; -webkit-user-select: auto; }
 figure { margin: 0; padding: 0; }
 
-/* Contenedor Principal (Maneja el Side-by-Side) */
+/* Contenedor Principal (Layout Vertical Global) */
 #app-container {
     display: flex;
+    flex-direction: column; /* Pilas de bloques */
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 1320px; /* Ancho máximo total (stats + gap + inv) */
+}
+
+/* Bloque Superior (Stats e Inventario side-by-side) */
+.top-boards-container {
+    display: flex;
     flex-direction: row;
-    flex-wrap: wrap; 
+    flex-wrap: wrap; /* Se apilan si no hay espacio */
     justify-content: center;
     align-items: flex-start;
     gap: 20px;
@@ -63,9 +73,10 @@ figure { margin: 0; padding: 0; }
 
 #main-card {
     flex: 1 1 650px;
-    max-width: 600px;
+    max-width: 650px;
 }
 
+/* Inventario (Superior) */
 #inventory-card {
     flex: 1 1 450px;
     max-width: 650px;
@@ -74,7 +85,7 @@ figure { margin: 0; padding: 0; }
 }
 
 .card::before { content: "SYSTEM::STATUS:OK"; position: absolute; top: 5px; left: 10px; font-size: 0.7rem; color: var(--text-muted); }
-#inventory-card::before { display: none; } 
+#inventory-card::before, #compcon-card::before { display: none; } 
 
 #settings-toggle, #lock-icon-container, #pips-lock-container {
     background: transparent; border: none; padding: 0; outline: none;
@@ -101,7 +112,7 @@ input[type="file"], select, button.mgr-btn {
     outline: none; transition: all 0.2s ease;
 }
 button.mgr-btn:hover:not(:disabled), select:hover { border-color: var(--border-primary); color: var(--border-primary); }
-button.mgr-btn.exit { border-color: var(--border-secondary); color: var(--border-secondary); width: 18%;} 
+button.mgr-btn.exit { border-color: var(--border-secondary); color: var(--border-secondary); width: 5vh;} 
 button.mgr-btn.danger { border-color: var(--border-secondary); color: var(--border-secondary); }
 button.mgr-btn.exit:hover { background: rgba(255, 69, 0, 0.2); }
 button.mgr-btn.danger:hover:not(:disabled) { background: rgba(255, 69, 0, 0.2); }
@@ -132,7 +143,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 
 .header-name.locked, .header-class.locked { color: var(--border-primary); cursor: default; border-color: transparent; background: rgba(255,255,255,0.03); }
 
-.pilot-stats-row { display: flex; gap: 1px; flex-wrap: wrap; width: 100%;}
+.pilot-stats-row { display: flex; gap: 15px; flex-wrap: wrap; }
 .grit-container { display: flex; align-items: center; gap: 10px; }
 .grit-label { font-size: 0.9rem; font-weight: bold; text-transform: uppercase; color: var(--text-main); transition: color 0.3s; }
 .grit-input { width: 50px; text-align: center; background: rgba(0,0,0,0.5) !important; border: 1px solid var(--text-main) !important; color: var(--text-main) !important; }
@@ -178,8 +189,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 .rest-btn { width: auto !important; padding: 6px 20px !important; border-color: var(--border-primary) !important; color: var(--border-primary) !important; font-weight: bold; letter-spacing: 1px; transition: all 0.3s ease; }
 .rest-btn:hover { background: rgba(255, 255, 255, 0.1); }
 
-/* --- CSS DEL TABLERO DE INVENTARIO Y NOTAS --- */
-.inventory-inner {
+/* --- CSS COMÚN DE TABLEROS COLAPSABLES --- */
+.inventory-inner, #compcon-frame {
     width: 100%;
     transition: opacity 0.1s linear;
 }
@@ -193,11 +204,11 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     cursor: pointer;
     border-bottom: 2px solid var(--border-primary);
     transition: background 0.2s;
-    position: relative; /* Clave para anclar la flecha cuando se cierra */
+    position: relative; 
 }
 .toggle-header:hover { background: rgba(255, 255, 255, 0.05); }
 .toggle-header h3 { margin: 0; color: var(--border-primary); font-size: 1.1rem; transition: color 0.3s; }
-#inventory-chevron { color: var(--border-primary); transition: transform 0.2s linear; }
+.toggle-header span { color: var(--border-primary); transition: transform 0.2s linear; }
 
 .card-body { 
     padding: 20px 30px; 
@@ -212,8 +223,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     opacity: 0;
-    transition: max-height 0.25s linear, padding 0.25s linear, opacity 0.1s linear;
 }
+
+.toggle-header.collapsed-header { border-bottom: none; }
+.toggle-header.collapsed-header span { transform: rotate(-90deg); }
 
 .lancer-textarea {
     width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--text-muted);
@@ -238,41 +251,50 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 }
 .inv-del-btn:hover { background: rgba(255, 69, 0, 0.2); }
 
-/* --- RESPONSIVIDAD Y ANIMACIÓN LINEAL (CONSOLA) --- */
+/* --- CSS ESPECÍFICO DE COMP/CON (ABAJO) --- */
+#compcon-card {
+    padding: 0;
+    max-width: 120%; /* Ocupa todo el ancho disponible */
+}
+
+.compcon-app-body {
+    padding: 0;
+    height: 80vh; /* Súper alto: 80% de la pantalla */
+    transition: max-height 0.25s linear, opacity 0.1s linear;
+}
+
+.compcon-app-body.collapsed {
+    max-height: 0;
+    opacity: 0;
+}
+
+#compcon-frame {
+    width: 100%;
+    height: 100%; /* Ocupa todo el alto de la sección body */
+    border: none;
+    background-color: #000;
+}
+
+/* --- RESPONSIVIDAD Y ANIMACIONES ESPECIALES --- */
+
+/* Pantallas Grandes (Cierre Lateral de Inventario Superior) */
 @media (min-width: 1100px) {
     #inventory-card { max-width: 450px; }
     .inventory-inner { width: 450px; } 
 
     #inventory-card.collapsed-card {
-        max-width: 60px; /* Ancho exacto de la pestaña cerrada */
+        max-width: 60px; 
         flex-basis: 60px;
         cursor: pointer;
     }
-    
-    #inventory-card.collapsed-card .card-body {
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    #inventory-card.collapsed-card .toggle-header h3 { 
-        opacity: 0; 
-    }
-
-    /* Rescate de la flechita: Se ancla a la zona visible */
+    #inventory-card.collapsed-card .card-body { opacity: 0; pointer-events: none; }
+    #inventory-card.collapsed-card .toggle-header h3 { opacity: 0; }
     #inventory-card.collapsed-card #inventory-chevron { 
-        position: absolute;
-        left: 20px; /* La centra perfecto en los 60px */
-        top: 20px;
-        transform: rotate(90deg); /* Apuntando hacia el tablero principal */
-        font-size: 1.2rem;
+        position: absolute; left: 20px; top: 20px; transform: rotate(90deg); font-size: 1.2rem;
     }
 }
 
-@media (max-width: 1099px) {
-    .toggle-header.collapsed-header { border-bottom: none; }
-    .toggle-header.collapsed-header #inventory-chevron { transform: rotate(-90deg); }
-}
-
+/* Teléfonos y Tablets Chicas */
 @media (max-width: 600px) {
     body { padding: 10px; }
     .card { padding: 20px 15px; }
@@ -289,4 +311,5 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     .toggle-header { padding: 15px; }
     .card-body { padding: 15px; }
     .pilot-stats-row { justify-content: space-between; gap: 10px; }
+    .compcon-app-body { height: 70vh; } /* Un poco más bajo en celular */
 }

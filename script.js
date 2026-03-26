@@ -1,22 +1,22 @@
 // --- CONFIGURACIÓN DE ESTADÍSTICAS ---
 const stats = [
-    { id: 'strength', name: 'Strength', color: '#ff4500', type: 'stat' },    
-    { id: 'dexterity', name: 'Dexterity', color: '#ffcc00', type: 'stat' },   
-    { id: 'mechanics', name: 'Mechanics', color: '#00ffff', type: 'stat' },        
-    { id: 'tech', name: 'Tech', color: '#00ff37', type: 'stat' },        
+    { id: 'strength', name: 'Strength', color: '#ff4500', type: 'stat' },
+    { id: 'dexterity', name: 'Dexterity', color: '#ffcc00', type: 'stat' },
+    { id: 'mechanics', name: 'Mechanics', color: '#00ffff', type: 'stat' },
+    { id: 'tech', name: 'Tech', color: '#00ff37', type: 'stat' },
     { id: 'meds', name: 'Meds', color: '#ff2a2a', type: 'stat' },
-    { id: 'spotting', name: 'Spotting', color: '#2600ff', type: 'stat' }, 
+    { id: 'spotting', name: 'Spotting', color: '#00ff7f', type: 'stat' },
     { id: 'charisma', name: 'Charisma', color: '#ff00ff', type: 'stat' },
-    { id: 'paracausal', name: 'Paracausal', color: '#ff006a', type: 'stat' },   
-    { id: 'miscellaneous', name: 'Misc', color: '#7300ff', type: 'stat' }
+    { id: 'paracausal', name: 'Paracausal', color: '#ff00aa', type: 'stat' },
+    { id: 'miscellaneous', name: 'Miscellaneous', color: '#967bb6', type: 'stat' }
 ];
 
 const container = document.getElementById('stats-container');
 
-const statCycle = ['empty', 'stamina', 'fatigue']; 
-const statCombatCycle = ['stamina', 'fatigue'];            
-const healthCycle = ['empty', 'health', 'fatigue'];        
-const healthCombatCycle = ['health', 'fatigue'];           
+const statCycle = ['empty', 'stamina', 'fatigue'];
+const statCombatCycle = ['stamina', 'fatigue'];
+const healthCycle = ['empty', 'health', 'fatigue'];
+const healthCombatCycle = ['health', 'fatigue'];
 const shieldCycle = ['empty', 'shield', 'fatigue'];
 const shieldCombatCycle = ['shield', 'fatigue'];
 
@@ -28,7 +28,7 @@ const vitalsHtml = `
                 <span style="width: 65px;"></span>
             </header>
             <section class="pips-container health-pips">
-                ${Array(20).fill('<i class="pip" data-state="empty" data-type="health" data-color="var(--pip-health)"></i>').join('')}
+                ${Array(12).fill('<i class="pip" data-state="empty" data-type="health" data-color="var(--pip-health)"></i>').join('')}
             </section>
         </section>
         <section class="vital-row">
@@ -37,7 +37,7 @@ const vitalsHtml = `
                 <span style="width: 65px;"></span>
             </header>
             <section class="pips-container health-pips">
-                ${Array(10).fill('<i class="pip" data-state="empty" data-type="shield" data-color="#00bfff"></i>').join('')}
+                ${Array(12).fill('<i class="pip" data-state="empty" data-type="shield" data-color="#00bfff"></i>').join('')}
             </section>
         </section>
     </section>
@@ -54,7 +54,6 @@ stats.forEach(attr => {
     for (let i = 0; i < 10; i++) {
         pipsHtml += `<i class="pip" data-state="empty" data-type="${attr.type}" data-color="${attr.color}" style="color:${attr.color}"></i>`;
     }
-    
     pipsHtml += '</section>';
 
     row.innerHTML = `${labelHtml}${pipsHtml}`;
@@ -86,7 +85,7 @@ function updatePipVisuals(pip, state, baseColor) {
 let isCapacityLocked = false;
 
 document.querySelectorAll('.pip').forEach(pip => {
-    pip.addEventListener('click', function() {
+    pip.addEventListener('click', function () {
         const type = this.getAttribute('data-type');
         const baseColor = this.getAttribute('data-color');
         let currentState = this.getAttribute('data-state');
@@ -103,7 +102,7 @@ document.querySelectorAll('.pip').forEach(pip => {
         if (isCapacityLocked) {
             if (this.getAttribute('data-enabled') !== 'true') return;
             let nextIndex = (activeCombatCycle.indexOf(currentState) + 1) % activeCombatCycle.length;
-            if(nextIndex === 0 && activeCombatCycle.indexOf(currentState) === -1) nextIndex = 1; 
+            if (nextIndex === 0 && activeCombatCycle.indexOf(currentState) === -1) nextIndex = 1;
 
             let nextState = activeCombatCycle[nextIndex];
             this.setAttribute('data-state', nextState);
@@ -114,20 +113,20 @@ document.querySelectorAll('.pip').forEach(pip => {
             this.setAttribute('data-state', nextState);
             updatePipVisuals(this, nextState, baseColor);
         }
-        saveBoardState(); 
+        saveBoardState();
     });
 });
 
 const allowedDice = [0, 2, 4, 6, 8, 12];
 document.querySelectorAll('.stat-dice').forEach(input => {
-    input.addEventListener('blur', function() {
+    input.addEventListener('blur', function () {
         let val = parseInt(this.value);
         if (isNaN(val)) val = 0;
         let closest = allowedDice.reduce((prev, curr) => Math.abs(curr - val) < Math.abs(prev - val) ? curr : prev);
         this.value = closest;
-        saveBoardState(); 
+        saveBoardState();
     });
-    input.addEventListener('keydown', function(e) {
+    input.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') this.blur();
     });
 });
@@ -164,8 +163,11 @@ const inventoryList = document.getElementById('inventory-list');
 const pilotNotes = document.getElementById('pilot-notes');
 const creditsInput = document.getElementById('credits-input');
 
-const svgPathUnlocked = '<path d="M7 11V7a5 5 0 0 1 9.9-1"></path><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>';
-const svgPathLocked = '<path d="M17 11V7a5 5 0 0 0-10 0v4"></path><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>';
+// NUEVAS VARIABLES COMP/CON
+const compconToggle = document.getElementById('compcon-toggle');
+const compconBody = document.getElementById('compcon-body');
+const compconFrame = document.getElementById('compcon-frame'); // NUEVO
+
 
 settingsToggle.addEventListener('click', () => settingsPanel.classList.add('open'));
 closeSettings.addEventListener('click', () => settingsPanel.classList.remove('open'));
@@ -179,27 +181,22 @@ pilotNotes.addEventListener('input', saveBoardState);
 creditsInput.addEventListener('input', saveBoardState);
 
 
-// --- LÓGICA DE APERTURA DEL INVENTARIO CORREGIDA ---
-// Clic en cualquier parte de la tarjeta negra
+// --- LÓGICA DE APERTURA DE TABLEROS ---
+
+// Inventario (Superior)
 inventoryCard.addEventListener('click', () => {
     if (window.innerWidth >= 1100 && inventoryCard.classList.contains('collapsed-card')) {
         inventoryCard.classList.remove('collapsed-card');
         saveBoardState();
     }
 });
-
-// Clic directo en la cabecera o la flecha
 inventoryToggle.addEventListener('click', (e) => {
     if (window.innerWidth >= 1100) {
-        // En desktop alterna entre abrir y cerrar directamente
-        if (inventoryCard.classList.contains('collapsed-card')) {
-            inventoryCard.classList.remove('collapsed-card');
-        } else {
-            inventoryCard.classList.add('collapsed-card');
-        }
+        if (inventoryCard.classList.contains('collapsed-card')) { inventoryCard.classList.remove('collapsed-card'); }
+        else { inventoryCard.classList.add('collapsed-card'); }
         saveBoardState();
-        e.stopPropagation(); // Evita que dispare la apertura inmediata de la card por el EventListener de arriba
-    } 
+        e.stopPropagation();
+    }
     else {
         inventoryBody.classList.toggle('collapsed');
         inventoryToggle.classList.toggle('collapsed-header');
@@ -207,18 +204,30 @@ inventoryToggle.addEventListener('click', (e) => {
     }
 });
 
+// Comp/Con (Inferior - Siempre colapso vertical)
+compconToggle.addEventListener('click', () => {
+    // NUEVO: Si está vacío, lo cargamos justo antes de abrirlo
+    if (!compconFrame.src) {
+        compconFrame.src = "https://compcon.app/";
+    }
+    
+    compconBody.classList.toggle('collapsed');
+    compconToggle.classList.toggle('collapsed-header');
+    saveBoardState();
+});
+
 
 function createInventoryItem(value = "") {
     const itemDiv = document.createElement('article');
     itemDiv.className = 'inventory-item';
-    
+
     const input = document.createElement('input');
     input.type = 'text';
     input.className = 'inv-input';
     input.value = value;
     input.placeholder = "ITEM // QTY // DESC";
     input.addEventListener('blur', saveBoardState);
-    
+
     const delBtn = document.createElement('button');
     delBtn.className = 'inv-del-btn';
     delBtn.textContent = 'X';
@@ -227,7 +236,7 @@ function createInventoryItem(value = "") {
         itemDiv.remove();
         saveBoardState();
     });
-    
+
     itemDiv.appendChild(input);
     itemDiv.appendChild(delBtn);
     inventoryList.appendChild(itemDiv);
@@ -238,20 +247,20 @@ addItemBtn.addEventListener('click', () => {
     saveBoardState();
 });
 
-// Bloqueos 
+// Bloqueos
 lockIconContainer.addEventListener('click', () => {
-    if (pilotNameInput.readOnly) return; 
-    
+    if (pilotNameInput.readOnly) return;
+
     pilotNameInput.readOnly = true;
     mechClassInput.readOnly = true;
     allGritInputs.forEach(input => input.readOnly = true);
-    
+
     pilotNameInput.classList.add('locked');
     mechClassInput.classList.add('locked');
-    
+
     allGritInputs.forEach(input => input.classList.add('locked'));
     allGritLabels.forEach(label => label.classList.add('locked'));
-    
+
     lockIconSvg.innerHTML = svgPathLocked;
     lockIconContainer.classList.add('locked-state');
     saveBoardState();
@@ -261,13 +270,13 @@ unlockNameBtn.addEventListener('click', () => {
     pilotNameInput.readOnly = false;
     mechClassInput.readOnly = false;
     allGritInputs.forEach(input => input.readOnly = false);
-    
+
     pilotNameInput.classList.remove('locked');
     mechClassInput.classList.remove('locked');
-    
+
     allGritInputs.forEach(input => input.classList.remove('locked'));
     allGritLabels.forEach(label => label.classList.remove('locked'));
-    
+
     lockIconSvg.innerHTML = svgPathUnlocked;
     lockIconContainer.classList.remove('locked-state');
     settingsPanel.classList.remove('open');
@@ -298,7 +307,7 @@ unlockPipsBtn.addEventListener('click', () => {
     pipsLockSvg.innerHTML = svgPathUnlocked;
     pipsLockContainer.classList.remove('locked-state');
     pipsLockContainer.title = 'Fijar Capacidad (Bloquear Edición)';
-    
+
     document.querySelectorAll('.pip').forEach(pip => {
         pip.removeAttribute('data-enabled');
         pip.classList.remove('disabled-pip');
@@ -311,7 +320,7 @@ restBtn.addEventListener('click', () => {
     document.querySelectorAll('.pip').forEach(pip => {
         const type = pip.getAttribute('data-type');
         const baseColor = pip.getAttribute('data-color');
-        
+
         let targetState = 'stamina';
         if (type === 'health') targetState = 'health';
         if (type === 'shield') targetState = 'shield';
@@ -345,7 +354,7 @@ stats.forEach(attr => {
 themeSelector.addEventListener('change', (e) => {
     const color = e.target.value;
     document.documentElement.style.setProperty('--border-primary', color);
-    saveBoardState(); 
+    saveBoardState();
 });
 
 
@@ -354,23 +363,23 @@ function saveBoardState() {
     const state = {
         pilotName: pilotNameInput.value,
         mechClass: mechClassInput.value,
-        
         levelValue: levelInput.value,
         gritValue: gritInput.value,
         evasionValue: evasionInput.value,
-        
         isNameLocked: pilotNameInput.readOnly,
         isCapacityLocked: isCapacityLocked,
         themeColor: document.documentElement.style.getPropertyValue('--border-primary') || '#00ffff',
-        
         notes: pilotNotes.value,
         credits: creditsInput.value,
-        
+
         inventory: Array.from(document.querySelectorAll('.inventory-item .inv-input'))
-                        .map(inp => inp.value)
-                        .filter(val => val.trim() !== ''), 
-                        
+            .map(inp => inp.value)
+            .filter(val => val.trim() !== ''),
+
         isInventoryOpen: !inventoryCard.classList.contains('collapsed-card') && !inventoryBody.classList.contains('collapsed'),
+
+        // GUARDAR ESTADO DE COMP/CON
+        isCompconOpen: !compconBody.classList.contains('collapsed'),
 
         statValues: Array.from(document.querySelectorAll('.stat-dice')).map(input => input.value),
         pips: Array.from(document.querySelectorAll('.pip')).map(pip => ({
@@ -385,7 +394,7 @@ function loadBoardState() {
     const savedData = localStorage.getItem('lancerBoardState');
     if (!savedData) {
         createInventoryItem();
-        return; 
+        return;
     }
 
     const state = JSON.parse(savedData);
@@ -397,11 +406,9 @@ function loadBoardState() {
 
     pilotNameInput.value = state.pilotName || '';
     mechClassInput.value = state.mechClass || '';
-    
     if (state.levelValue !== undefined) levelInput.value = state.levelValue;
     if (state.gritValue !== undefined) gritInput.value = state.gritValue;
     if (state.evasionValue !== undefined) evasionInput.value = state.evasionValue;
-
     if (state.notes !== undefined) pilotNotes.value = state.notes;
     if (state.credits !== undefined) creditsInput.value = state.credits;
 
@@ -411,19 +418,24 @@ function loadBoardState() {
         if (validItems.length > 0) {
             validItems.forEach(val => createInventoryItem(val));
         } else {
-            createInventoryItem(); 
+            createInventoryItem();
         }
     } else {
-        createInventoryItem(); 
+        createInventoryItem();
     }
 
+    // Cargar estado de Inventario (Superior)
     if (state.isInventoryOpen === false) {
-        if (window.innerWidth >= 1100) {
-            inventoryCard.classList.add('collapsed-card');
-        } else {
-            inventoryBody.classList.add('collapsed');
-            inventoryToggle.classList.add('collapsed-header');
-        }
+        if (window.innerWidth >= 1100) { inventoryCard.classList.add('collapsed-card'); }
+        else { inventoryBody.classList.add('collapsed'); inventoryToggle.classList.add('collapsed-header'); }
+    }
+
+    // CARGAR ESTADO DE COMP/CON
+   // CARGAR ESTADO DE COMP/CON
+    if (state.isCompconOpen === true) {
+        compconFrame.src = "https://compcon.app/"; // NUEVO: Lo inyecta si estaba abierto
+        compconBody.classList.remove('collapsed');
+        compconToggle.classList.remove('collapsed-header');
     }
 
     const statInputs = document.querySelectorAll('.stat-dice');
@@ -448,16 +460,15 @@ function loadBoardState() {
     if (state.isNameLocked) {
         pilotNameInput.readOnly = true;
         mechClassInput.readOnly = true;
-        
         pilotNameInput.classList.add('locked');
         mechClassInput.classList.add('locked');
-        
+
         allGritInputs.forEach(input => {
             input.readOnly = true;
             input.classList.add('locked');
         });
         allGritLabels.forEach(label => label.classList.add('locked'));
-        
+
         lockIconSvg.innerHTML = svgPathLocked;
         lockIconContainer.classList.add('locked-state');
     }
@@ -494,8 +505,8 @@ request.onupgradeneeded = (event) => {
 };
 request.onsuccess = (event) => {
     db = event.target.result;
-    populateImageSelector(); 
-    loadActiveBackgrounds();   
+    populateImageSelector();
+    loadActiveBackgrounds();
 };
 
 const fileInput = document.getElementById('image-upload');
@@ -505,12 +516,12 @@ function handleImageUpload(event) {
     if (!file) return;
     const imageName = prompt("Nombre de la imagen:", file.name) || file.name;
     const reader = new FileReader();
-    reader.onload = function(e) { saveImageToDB(imageName, e.target.result); };
-    reader.readAsDataURL(file); 
+    reader.onload = function (e) { saveImageToDB(imageName, e.target.result); };
+    reader.readAsDataURL(file);
 }
 function saveImageToDB(name, data) {
     const transaction = db.transaction([storeName], "readwrite");
-    transaction.objectStore(storeName).put({ name: name, data: data }); 
+    transaction.objectStore(storeName).put({ name: name, data: data });
     transaction.oncomplete = () => { populateImageSelector(); fileInput.value = ''; };
 }
 function populateImageSelector() {
@@ -522,7 +533,7 @@ function populateImageSelector() {
             const option = document.createElement('option');
             option.value = option.textContent = cursor.value.name;
             selector.appendChild(option);
-            cursor.continue(); 
+            cursor.continue();
         }
     };
 }
@@ -540,8 +551,8 @@ function loadActiveBackgrounds() {
     const activeCardBG = localStorage.getItem('activeCardBG');
     const transaction = db.transaction([storeName], "readonly");
     const store = transaction.objectStore(storeName);
-    if (activePageBG) store.get(activePageBG).onsuccess = (e) => { if(e.target.result) document.body.style.backgroundImage = `url(${e.target.result.data})`; };
-    if (activeCardBG) store.get(activeCardBG).onsuccess = (e) => { if(e.target.result) document.getElementById('main-card').style.backgroundImage = `url(${e.target.result.data})`; };
+    if (activePageBG) store.get(activePageBG).onsuccess = (e) => { if (e.target.result) document.body.style.backgroundImage = `url(${e.target.result.data})`; };
+    if (activeCardBG) store.get(activeCardBG).onsuccess = (e) => { if (e.target.result) document.getElementById('main-card').style.backgroundImage = `url(${e.target.result.data})`; };
 }
 function deleteSelectedImage() {
     const selector = document.getElementById('image-selector');
@@ -549,8 +560,8 @@ function deleteSelectedImage() {
     if (!imageName || !confirm(`¿Eliminar ${imageName}?`)) return;
     db.transaction([storeName], "readwrite").objectStore(storeName).delete(imageName).oncomplete = () => {
         populateImageSelector();
-        if(localStorage.getItem('activePageBG') === imageName) { document.body.style.backgroundImage = ''; localStorage.removeItem('activePageBG'); }
-        if(localStorage.getItem('activeCardBG') === imageName) { document.getElementById('main-card').style.backgroundImage = ''; localStorage.removeItem('activeCardBG'); }
+        if (localStorage.getItem('activePageBG') === imageName) { document.body.style.backgroundImage = ''; localStorage.removeItem('activePageBG'); }
+        if (localStorage.getItem('activeCardBG') === imageName) { document.getElementById('main-card').style.backgroundImage = ''; localStorage.removeItem('activeCardBG'); }
     };
 }
 function resetBackgrounds() {
@@ -571,10 +582,10 @@ hardResetBtn.addEventListener('click', () => {
     resetModal.classList.add('active');
     confirmResetBtn.disabled = true;
     settingsPanel.classList.remove('open');
-    
+
     let timeLeft = 3;
     confirmResetBtn.textContent = `CONFIRMAR (${timeLeft})`;
-    
+
     resetInterval = setInterval(() => {
         timeLeft--;
         if (timeLeft > 0) {
@@ -593,10 +604,10 @@ cancelResetBtn.addEventListener('click', () => {
 });
 
 confirmResetBtn.addEventListener('click', () => {
-    localStorage.clear(); 
+    localStorage.clear();
     if (db) { db.close(); }
     const req = indexedDB.deleteDatabase("LancerTrackerDB");
-    
+
     req.onsuccess = function () { window.location.reload(); };
     req.onerror = function () { window.location.reload(); };
     req.onblocked = function () { window.location.reload(); };
