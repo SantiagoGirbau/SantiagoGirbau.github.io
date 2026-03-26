@@ -38,18 +38,18 @@ figure { margin: 0; padding: 0; }
 /* Contenedor Principal (Layout Vertical Global) */
 #app-container {
     display: flex;
-    flex-direction: column; /* Pilas de bloques */
+    flex-direction: column;
     align-items: center;
     gap: 20px;
     width: 100%;
-    max-width: 1320px; /* Ancho máximo total (stats + gap + inv) */
+    max-width: 1320px; 
 }
 
 /* Bloque Superior (Stats e Inventario side-by-side) */
 .top-boards-container {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap; /* Se apilan si no hay espacio */
+    flex-wrap: wrap; 
     justify-content: center;
     align-items: flex-start;
     gap: 20px;
@@ -189,7 +189,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 .rest-btn { width: auto !important; padding: 6px 20px !important; border-color: var(--border-primary) !important; color: var(--border-primary) !important; font-weight: bold; letter-spacing: 1px; transition: all 0.3s ease; }
 .rest-btn:hover { background: rgba(255, 255, 255, 0.1); }
 
-/* --- CSS COMÚN DE TABLEROS COLAPSABLES --- */
+/* --- CSS COMÚN DE TABLEROS COLAPSABLES Y ANTI-SALTO DE CÁMARA --- */
 .inventory-inner, #compcon-frame {
     width: 100%;
     transition: opacity 0.1s linear;
@@ -214,8 +214,9 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     padding: 20px 30px; 
     max-height: 2000px; 
     opacity: 1;
+    visibility: visible;
     overflow: hidden;
-    transition: max-height 0.25s linear, padding 0.25s linear, opacity 0.1s linear;
+    transition: max-height 0.25s linear, padding 0.25s linear, opacity 0.1s linear, visibility 0s linear 0s;
 }
 
 .card-body.collapsed { 
@@ -223,6 +224,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     opacity: 0;
+    visibility: hidden; /* Oculta elementos al navegador */
+    transition: max-height 0.25s linear, padding 0.25s linear, opacity 0.1s linear, visibility 0s linear 0.25s;
 }
 
 .toggle-header.collapsed-header { border-bottom: none; }
@@ -254,30 +257,31 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 /* --- CSS ESPECÍFICO DE COMP/CON (ABAJO) --- */
 #compcon-card {
     padding: 0;
-    max-width: 120%; /* Ocupa todo el ancho disponible */
+    max-width: 120%; 
 }
 
 .compcon-app-body {
     padding: 0;
-    height: 80vh; /* Súper alto: 80% de la pantalla */
-    transition: max-height 0.25s linear, opacity 0.1s linear;
+    height: 80vh; 
+    visibility: visible;
+    transition: max-height 0.25s linear, opacity 0.1s linear, visibility 0s linear 0s;
 }
 
 .compcon-app-body.collapsed {
     max-height: 0;
     opacity: 0;
+    visibility: hidden; /* Corta el robo de foco (salto de cámara) de raíz */
+    transition: max-height 0.25s linear, opacity 0.1s linear, visibility 0s linear 0.25s;
 }
 
 #compcon-frame {
     width: 100%;
-    height: 100%; /* Ocupa todo el alto de la sección body */
+    height: 100%; 
     border: none;
     background-color: #000;
 }
 
 /* --- RESPONSIVIDAD Y ANIMACIONES ESPECIALES --- */
-
-/* Pantallas Grandes (Cierre Lateral de Inventario Superior) */
 @media (min-width: 1100px) {
     #inventory-card { max-width: 450px; }
     .inventory-inner { width: 450px; } 
@@ -287,14 +291,13 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
         flex-basis: 60px;
         cursor: pointer;
     }
-    #inventory-card.collapsed-card .card-body { opacity: 0; pointer-events: none; }
+    #inventory-card.collapsed-card .card-body { opacity: 0; pointer-events: none; visibility: hidden; }
     #inventory-card.collapsed-card .toggle-header h3 { opacity: 0; }
     #inventory-card.collapsed-card #inventory-chevron { 
         position: absolute; left: 20px; top: 20px; transform: rotate(90deg); font-size: 1.2rem;
     }
 }
 
-/* Teléfonos y Tablets Chicas */
 @media (max-width: 600px) {
     body { padding: 10px; }
     .card { padding: 20px 15px; }
@@ -311,5 +314,5 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     .toggle-header { padding: 15px; }
     .card-body { padding: 15px; }
     .pilot-stats-row { justify-content: space-between; gap: 10px; }
-    .compcon-app-body { height: 70vh; } /* Un poco más bajo en celular */
+    .compcon-app-body { height: 70vh; } 
 }

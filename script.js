@@ -163,11 +163,12 @@ const inventoryList = document.getElementById('inventory-list');
 const pilotNotes = document.getElementById('pilot-notes');
 const creditsInput = document.getElementById('credits-input');
 
-// NUEVAS VARIABLES COMP/CON
 const compconToggle = document.getElementById('compcon-toggle');
 const compconBody = document.getElementById('compcon-body');
-const compconFrame = document.getElementById('compcon-frame'); // NUEVO
+const compconFrame = document.getElementById('compcon-frame'); 
 
+const svgPathUnlocked = '<path d="M7 11V7a5 5 0 0 1 9.9-1"></path><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>';
+const svgPathLocked = '<path d="M17 11V7a5 5 0 0 0-10 0v4"></path><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>';
 
 settingsToggle.addEventListener('click', () => settingsPanel.classList.add('open'));
 closeSettings.addEventListener('click', () => settingsPanel.classList.remove('open'));
@@ -206,7 +207,6 @@ inventoryToggle.addEventListener('click', (e) => {
 
 // Comp/Con (Inferior - Siempre colapso vertical)
 compconToggle.addEventListener('click', () => {
-    // NUEVO: Si está vacío, lo cargamos justo antes de abrirlo
     if (!compconFrame.src) {
         compconFrame.src = "https://compcon.app/";
     }
@@ -247,74 +247,86 @@ addItemBtn.addEventListener('click', () => {
     saveBoardState();
 });
 
-// Bloqueos
+// --- BLOQUEOS REDISEÑADOS COMO INTERRUPTORES (TOGGLES) ---
+
+// Bloqueo de Nombres y Estadísticas Superiores
 lockIconContainer.addEventListener('click', () => {
-    if (pilotNameInput.readOnly) return;
+    const isCurrentlyLocked = lockIconContainer.classList.contains('locked-state');
+    
+    if (!isCurrentlyLocked) { // Bloqueamos
+        pilotNameInput.readOnly = true;
+        mechClassInput.readOnly = true;
+        allGritInputs.forEach(input => input.readOnly = true);
 
-    pilotNameInput.readOnly = true;
-    mechClassInput.readOnly = true;
-    allGritInputs.forEach(input => input.readOnly = true);
+        pilotNameInput.classList.add('locked');
+        mechClassInput.classList.add('locked');
 
-    pilotNameInput.classList.add('locked');
-    mechClassInput.classList.add('locked');
+        allGritInputs.forEach(input => input.classList.add('locked'));
+        allGritLabels.forEach(label => label.classList.add('locked'));
 
-    allGritInputs.forEach(input => input.classList.add('locked'));
-    allGritLabels.forEach(label => label.classList.add('locked'));
+        lockIconSvg.innerHTML = svgPathLocked;
+        lockIconContainer.classList.add('locked-state');
+        lockIconContainer.title = 'Identificación Bloqueada (Clic para Desbloquear)';
+    } else { // Desbloqueamos
+        pilotNameInput.readOnly = false;
+        mechClassInput.readOnly = false;
+        allGritInputs.forEach(input => input.readOnly = false);
 
-    lockIconSvg.innerHTML = svgPathLocked;
-    lockIconContainer.classList.add('locked-state');
+        pilotNameInput.classList.remove('locked');
+        mechClassInput.classList.remove('locked');
+
+        allGritInputs.forEach(input => input.classList.remove('locked'));
+        allGritLabels.forEach(label => label.classList.remove('locked'));
+
+        lockIconSvg.innerHTML = svgPathUnlocked;
+        lockIconContainer.classList.remove('locked-state');
+        lockIconContainer.title = 'Bloquear Identificación';
+    }
     saveBoardState();
 });
 
-unlockNameBtn.addEventListener('click', () => {
-    pilotNameInput.readOnly = false;
-    mechClassInput.readOnly = false;
-    allGritInputs.forEach(input => input.readOnly = false);
-
-    pilotNameInput.classList.remove('locked');
-    mechClassInput.classList.remove('locked');
-
-    allGritInputs.forEach(input => input.classList.remove('locked'));
-    allGritLabels.forEach(label => label.classList.remove('locked'));
-
-    lockIconSvg.innerHTML = svgPathUnlocked;
-    lockIconContainer.classList.remove('locked-state');
-    settingsPanel.classList.remove('open');
-    saveBoardState();
-});
-
+// Bloqueo de Capacidad (Pips)
 pipsLockContainer.addEventListener('click', () => {
-    if (isCapacityLocked) return;
-    isCapacityLocked = true;
-    pipsLockSvg.innerHTML = svgPathLocked;
-    pipsLockContainer.classList.add('locked-state');
-    pipsLockContainer.title = 'Capacidad Bloqueada. Desbloquear desde Configuración.';
+    isCapacityLocked = !isCapacityLocked; // Cambiamos de estado directamente
+    
+    if (isCapacityLocked) { // Bloqueamos
+        pipsLockSvg.innerHTML = svgPathLocked;
+        pipsLockContainer.classList.add('locked-state');
+        pipsLockContainer.title = 'Capacidad Bloqueada (Clic para Desbloquear)';
 
-    document.querySelectorAll('.pip').forEach(pip => {
-        const state = pip.getAttribute('data-state');
-        if (state === 'stamina' || state === 'fatigue' || state === 'health' || state === 'shield') {
-            pip.setAttribute('data-enabled', 'true');
-        } else {
-            pip.setAttribute('data-enabled', 'false');
-            pip.classList.add('disabled-pip');
-        }
-    });
+        document.querySelectorAll('.pip').forEach(pip => {
+            const state = pip.getAttribute('data-state');
+            if (state === 'stamina' || state === 'fatigue' || state === 'health' || state === 'shield') {
+                pip.setAttribute('data-enabled', 'true');
+            } else {
+                pip.setAttribute('data-enabled', 'false');
+                pip.classList.add('disabled-pip');
+            }
+        });
+    } else { // Desbloqueamos
+        pipsLockSvg.innerHTML = svgPathUnlocked;
+        pipsLockContainer.classList.remove('locked-state');
+        pipsLockContainer.title = 'Fijar Capacidad (Bloquear Edición)';
+
+        document.querySelectorAll('.pip').forEach(pip => {
+            pip.removeAttribute('data-enabled');
+            pip.classList.remove('disabled-pip');
+        });
+    }
     saveBoardState();
+});
+
+// Botones del menú (Por si los seguís usando desde la configuración)
+unlockNameBtn.addEventListener('click', () => {
+    if (lockIconContainer.classList.contains('locked-state')) lockIconContainer.click();
+    settingsPanel.classList.remove('open');
 });
 
 unlockPipsBtn.addEventListener('click', () => {
-    isCapacityLocked = false;
-    pipsLockSvg.innerHTML = svgPathUnlocked;
-    pipsLockContainer.classList.remove('locked-state');
-    pipsLockContainer.title = 'Fijar Capacidad (Bloquear Edición)';
-
-    document.querySelectorAll('.pip').forEach(pip => {
-        pip.removeAttribute('data-enabled');
-        pip.classList.remove('disabled-pip');
-    });
+    if (isCapacityLocked) pipsLockContainer.click();
     settingsPanel.classList.remove('open');
-    saveBoardState();
 });
+
 
 restBtn.addEventListener('click', () => {
     document.querySelectorAll('.pip').forEach(pip => {
@@ -378,7 +390,6 @@ function saveBoardState() {
 
         isInventoryOpen: !inventoryCard.classList.contains('collapsed-card') && !inventoryBody.classList.contains('collapsed'),
 
-        // GUARDAR ESTADO DE COMP/CON
         isCompconOpen: !compconBody.classList.contains('collapsed'),
 
         statValues: Array.from(document.querySelectorAll('.stat-dice')).map(input => input.value),
@@ -424,16 +435,14 @@ function loadBoardState() {
         createInventoryItem();
     }
 
-    // Cargar estado de Inventario (Superior)
     if (state.isInventoryOpen === false) {
         if (window.innerWidth >= 1100) { inventoryCard.classList.add('collapsed-card'); }
         else { inventoryBody.classList.add('collapsed'); inventoryToggle.classList.add('collapsed-header'); }
     }
 
     // CARGAR ESTADO DE COMP/CON
-   // CARGAR ESTADO DE COMP/CON
     if (state.isCompconOpen === true) {
-        compconFrame.src = "https://compcon.app/"; // NUEVO: Lo inyecta si estaba abierto
+        compconFrame.src = "https://compcon.app/"; 
         compconBody.classList.remove('collapsed');
         compconToggle.classList.remove('collapsed-header');
     }
@@ -471,13 +480,14 @@ function loadBoardState() {
 
         lockIconSvg.innerHTML = svgPathLocked;
         lockIconContainer.classList.add('locked-state');
+        lockIconContainer.title = 'Identificación Bloqueada (Clic para Desbloquear)';
     }
 
     if (state.isCapacityLocked) {
         isCapacityLocked = true;
         pipsLockSvg.innerHTML = svgPathLocked;
         pipsLockContainer.classList.add('locked-state');
-        pipsLockContainer.title = 'Capacidad Bloqueada. Desbloquear desde Configuración.';
+        pipsLockContainer.title = 'Capacidad Bloqueada (Clic para Desbloquear)';
 
         allPips.forEach(pip => {
             if (pip.getAttribute('data-enabled') !== 'true') {
