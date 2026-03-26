@@ -208,7 +208,7 @@ inventoryToggle.addEventListener('click', (e) => {
 // Comp/Con (Inferior - Siempre colapso vertical)
 compconToggle.addEventListener('click', () => {
     if (!compconFrame.src) {
-        compconFrame.src = "https://compcon.app/";
+        compconFrame.src = "https://compcon.app/#/pilot_management";
     }
     
     compconBody.classList.toggle('collapsed');
