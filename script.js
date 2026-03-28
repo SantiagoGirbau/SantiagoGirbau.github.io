@@ -157,15 +157,19 @@ const restBtn = document.getElementById('rest-btn');
 const inventoryCard = document.getElementById('inventory-card');
 const inventoryToggle = document.getElementById('inventory-toggle');
 const inventoryBody = document.getElementById('inventory-body');
-const inventoryChevron = document.getElementById('inventory-chevron');
 const addItemBtn = document.getElementById('add-item-btn');
 const inventoryList = document.getElementById('inventory-list');
 const pilotNotes = document.getElementById('pilot-notes');
 const creditsInput = document.getElementById('credits-input');
 
+// VARIABLES COMP/CON
+const compconCard = document.getElementById('compcon-card');
 const compconToggle = document.getElementById('compcon-toggle');
 const compconBody = document.getElementById('compcon-body');
 const compconFrame = document.getElementById('compcon-frame'); 
+const compconSettingsBtn = document.getElementById('compcon-settings-btn');
+const compconSettingsMenu = document.getElementById('compcon-settings-menu');
+const shapeBtns = document.querySelectorAll('.shape-btn');
 
 const svgPathUnlocked = '<path d="M7 11V7a5 5 0 0 1 9.9-1"></path><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>';
 const svgPathLocked = '<path d="M17 11V7a5 5 0 0 0-10 0v4"></path><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>';
@@ -182,7 +186,7 @@ pilotNotes.addEventListener('input', saveBoardState);
 creditsInput.addEventListener('input', saveBoardState);
 
 
-// --- LÓGICA DE APERTURA DE TABLEROS ---
+// --- LÓGICA DE APERTURA DE TABLEROS Y FORMAS ---
 
 // Inventario (Superior)
 inventoryCard.addEventListener('click', () => {
@@ -205,14 +209,64 @@ inventoryToggle.addEventListener('click', (e) => {
     }
 });
 
-// Comp/Con (Inferior - Siempre colapso vertical)
+
+// COMP/CON - Lógica del Engranaje de Forma
+compconSettingsBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // Evita que se abra/cierre el tablero entero al tocar la tuerquita
+    compconSettingsMenu.classList.toggle('hidden');
+});
+
+// Evitar que hacer clic adentro del menú cierre la ventana de compcon
+compconSettingsMenu.addEventListener('click', (e) => {
+    e.stopPropagation();
+});
+
+// COMP/CON - Aplicar Forma (Horizontal, Cuadrado, Vertical)
+shapeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const shape = btn.getAttribute('data-shape');
+        
+        // Sacamos todas las formas previas y ponemos la nueva
+        compconCard.classList.remove('shape-horizontal', 'shape-square', 'shape-vertical');
+        compconCard.classList.add(`shape-${shape}`);
+        
+        // Pintamos el botón activo
+        shapeBtns.forEach(b => b.classList.remove('active-shape'));
+        btn.classList.add('active-shape');
+        
+        // Ocultamos el menú (opcional para UX limpia)
+        compconSettingsMenu.classList.add('hidden');
+        
+        saveBoardState();
+    });
+});
+
+// COMP/CON - Botón Principal (Abre y Cierra la terminal)
+function loadCompConSafely() {
+    if (!compconFrame.getAttribute('src')) {
+        const currentScrollY = window.scrollY;
+        const currentScrollX = window.scrollX;
+        const lockCamera = () => window.scrollTo(currentScrollX, currentScrollY);
+        
+        window.addEventListener('scroll', lockCamera);
+        compconFrame.setAttribute('src', 'https://compcon.app/#/pilot_management');
+        
+        setTimeout(() => {
+            window.removeEventListener('scroll', lockCamera);
+        }, 5000);
+    }
+}
+
+// COMP/CON - Botón Principal (Abre y Cierra la terminal)
 compconToggle.addEventListener('click', () => {
-    if (!compconFrame.src) {
-        compconFrame.src = "https://compcon.app/#/pilot_management";
+    if (!compconFrame.getAttribute('src')) {
+        // Carga directa y limpia a la URL que elegiste
+        compconFrame.setAttribute('src', 'https://compcon.app/#/pilot_management');
     }
     
     compconBody.classList.toggle('collapsed');
     compconToggle.classList.toggle('collapsed-header');
+    compconSettingsMenu.classList.add('hidden'); 
     saveBoardState();
 });
 
@@ -248,12 +302,10 @@ addItemBtn.addEventListener('click', () => {
 });
 
 // --- BLOQUEOS REDISEÑADOS COMO INTERRUPTORES (TOGGLES) ---
-
-// Bloqueo de Nombres y Estadísticas Superiores
 lockIconContainer.addEventListener('click', () => {
     const isCurrentlyLocked = lockIconContainer.classList.contains('locked-state');
     
-    if (!isCurrentlyLocked) { // Bloqueamos
+    if (!isCurrentlyLocked) { 
         pilotNameInput.readOnly = true;
         mechClassInput.readOnly = true;
         allGritInputs.forEach(input => input.readOnly = true);
@@ -267,7 +319,7 @@ lockIconContainer.addEventListener('click', () => {
         lockIconSvg.innerHTML = svgPathLocked;
         lockIconContainer.classList.add('locked-state');
         lockIconContainer.title = 'Identificación Bloqueada (Clic para Desbloquear)';
-    } else { // Desbloqueamos
+    } else { 
         pilotNameInput.readOnly = false;
         mechClassInput.readOnly = false;
         allGritInputs.forEach(input => input.readOnly = false);
@@ -285,11 +337,10 @@ lockIconContainer.addEventListener('click', () => {
     saveBoardState();
 });
 
-// Bloqueo de Capacidad (Pips)
 pipsLockContainer.addEventListener('click', () => {
-    isCapacityLocked = !isCapacityLocked; // Cambiamos de estado directamente
+    isCapacityLocked = !isCapacityLocked; 
     
-    if (isCapacityLocked) { // Bloqueamos
+    if (isCapacityLocked) { 
         pipsLockSvg.innerHTML = svgPathLocked;
         pipsLockContainer.classList.add('locked-state');
         pipsLockContainer.title = 'Capacidad Bloqueada (Clic para Desbloquear)';
@@ -303,7 +354,7 @@ pipsLockContainer.addEventListener('click', () => {
                 pip.classList.add('disabled-pip');
             }
         });
-    } else { // Desbloqueamos
+    } else { 
         pipsLockSvg.innerHTML = svgPathUnlocked;
         pipsLockContainer.classList.remove('locked-state');
         pipsLockContainer.title = 'Fijar Capacidad (Bloquear Edición)';
@@ -316,7 +367,7 @@ pipsLockContainer.addEventListener('click', () => {
     saveBoardState();
 });
 
-// Botones del menú (Por si los seguís usando desde la configuración)
+// Botones del menú
 unlockNameBtn.addEventListener('click', () => {
     if (lockIconContainer.classList.contains('locked-state')) lockIconContainer.click();
     settingsPanel.classList.remove('open');
@@ -372,6 +423,12 @@ themeSelector.addEventListener('change', (e) => {
 
 // --- SISTEMA DE PERSISTENCIA LOCAL ---
 function saveBoardState() {
+    
+    // Identificar qué forma está activa actualmente
+    let activeShape = 'horizontal';
+    if (compconCard.classList.contains('shape-square')) activeShape = 'square';
+    if (compconCard.classList.contains('shape-vertical')) activeShape = 'vertical';
+    
     const state = {
         pilotName: pilotNameInput.value,
         mechClass: mechClassInput.value,
@@ -391,6 +448,7 @@ function saveBoardState() {
         isInventoryOpen: !inventoryCard.classList.contains('collapsed-card') && !inventoryBody.classList.contains('collapsed'),
 
         isCompconOpen: !compconBody.classList.contains('collapsed'),
+        compconShape: activeShape, // GUARDAR LA FORMA ELEGIDA
 
         statValues: Array.from(document.querySelectorAll('.stat-dice')).map(input => input.value),
         pips: Array.from(document.querySelectorAll('.pip')).map(pip => ({
@@ -440,9 +498,23 @@ function loadBoardState() {
         else { inventoryBody.classList.add('collapsed'); inventoryToggle.classList.add('collapsed-header'); }
     }
 
-    // CARGAR ESTADO DE COMP/CON
+    // CARGAR ESTADO Y FORMA DE COMP/CON
+    if (state.compconShape) {
+        compconCard.classList.remove('shape-horizontal', 'shape-square', 'shape-vertical');
+        compconCard.classList.add(`shape-${state.compconShape}`);
+        
+        shapeBtns.forEach(b => {
+            if(b.getAttribute('data-shape') === state.compconShape) {
+                b.classList.add('active-shape');
+            } else {
+                b.classList.remove('active-shape');
+            }
+        });
+    }
+    
     if (state.isCompconOpen === true) {
-        compconFrame.src = "https://compcon.app/#/pilot_management"; 
+        // Inyecta el iframe directamente sin anclas que traben la pantalla
+        compconFrame.setAttribute('src', 'https://compcon.app/#/pilot_management');
         compconBody.classList.remove('collapsed');
         compconToggle.classList.remove('collapsed-header');
     }

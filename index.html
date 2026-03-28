@@ -151,12 +151,34 @@
             </article>
         </section>
 
-    <article class="card collapsible-card" id="compcon-card">
+        <article class="card collapsible-card shape-horizontal" id="compcon-card">
+            
             <header class="card-header toggle-header collapsed-header" id="compcon-toggle">
                 <h3>SYSTEM//COMP_CON_UPLINK</h3>
-                <span id="compcon-chevron">▼</span>
+                
+                <section class="compcon-controls" style="display: flex; gap: 15px; align-items: center;">
+                    <button id="compcon-settings-btn" class="mgr-btn" title="Ajustes de Pantalla" style="width: 32px; height: 32px; padding: 4px; display: flex; align-items: center; justify-content: center; background: transparent; border: none;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    </button>
+                    <span id="compcon-chevron">▼</span>
+                </section>
             </header>
             
+            <aside id="compcon-settings-menu" class="compcon-dropdown hidden">
+                <h4 style="margin: 0 0 10px 0; font-size: 0.85rem; color: var(--text-muted); text-align: center;">DISPLAY_MODE</h4>
+                <section style="display: flex; gap: 10px; justify-content: center;">
+                    <button class="mgr-btn shape-btn active-shape" data-shape="horizontal" title="Horizontal" style="width: 40px; height: 40px; padding: 5px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect></svg>
+                    </button>
+                    <button class="mgr-btn shape-btn" data-shape="square" title="Cuadrado" style="width: 40px; height: 40px; padding: 5px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect></svg>
+                    </button>
+                    <button class="mgr-btn shape-btn" data-shape="vertical" title="Vertical" style="width: 40px; height: 40px; padding: 5px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2" ry="2"></rect></svg>
+                    </button>
+                </section>
+            </aside>
+
             <section id="compcon-body" class="card-body compcon-app-body collapsed">
                 <iframe id="compcon-frame"></iframe>
             </section>

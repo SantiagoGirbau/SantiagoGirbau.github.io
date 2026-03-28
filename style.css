@@ -35,26 +35,42 @@ body {
 input, select, textarea { user-select: auto; -webkit-user-select: auto; }
 figure { margin: 0; padding: 0; }
 
-/* Contenedor Principal (Layout Vertical Global) */
+/* Contenedor Principal (Aumentado a 1600px) */
 #app-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 20px;
     width: 100%;
-    max-width: 1320px; 
+    max-width: 1600px; /* Ocupa más pantalla */
+    transition: max-width 0.4s ease;
 }
 
-/* Bloque Superior (Stats e Inventario side-by-side) */
+/* Bloque Superior (Grid para layout dinámico) */
 .top-boards-container {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap; 
-    justify-content: center;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: 1fr 450px; /* Base por defecto (vertical) */
     gap: 20px;
     width: 100%;
+    transition: grid-template-columns 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
+
+/* Clases de layout controladas por JS en app-container */
+/* Modo por defecto o colapsado: columna derecha de 450px */
+.app-layout-stats-inv .top-boards-container {
+    grid-template-columns: 1fr 450px;
+}
+
+/* Modo Cuadrado MOVIDO arriba: columna derecha de 850px */
+.app-layout-full-moved-square .top-boards-container {
+    grid-template-columns: 1fr 850px;
+}
+
+/* Modo Vertical MOVIDO arriba: columna derecha de 450px */
+.app-layout-full-moved-vertical .top-boards-container {
+    grid-template-columns: 1fr 450px;
+}
+
 
 .card {
     background-color: var(--card-bg);
@@ -71,17 +87,22 @@ figure { margin: 0; padding: 0; }
     transition: border-color 0.3s ease;
 }
 
+/* Stats siempre a la izquierda, ocupando todo el alto disponible en el grid */
 #main-card {
-    flex: 1 1 650px;
-    max-width: 650px;
+    grid-column: 1;
+    grid-row: 1 / span 2; /* Ocupa 2 filas si compcon se mete abajo */
+    align-self: start;
+    max-width: 750px; /* Límite para que no se estire feo */
+    justify-self: end; /* Pegado a la columna derecha */
 }
 
-/* Inventario (Superior) */
+/* Inventario siempre arriba a la derecha */
 #inventory-card {
-    flex: 1 1 450px;
-    max-width: 650px;
+    grid-column: 2;
+    grid-row: 1;
     padding: 0; 
-    transition: max-width 0.25s linear, flex-basis 0.25s linear;
+    width: 100%; /* Ocupa el ancho de la columna definido en el grid parent */
+    transition: width 0.4s ease;
 }
 
 .card::before { content: "SYSTEM::STATUS:OK"; position: absolute; top: 5px; left: 10px; font-size: 0.7rem; color: var(--text-muted); }
@@ -209,6 +230,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 .toggle-header:hover { background: rgba(255, 255, 255, 0.05); }
 .toggle-header h3 { margin: 0; color: var(--border-primary); font-size: 1.1rem; transition: color 0.3s; }
 .toggle-header span { color: var(--border-primary); transition: transform 0.2s linear; }
+#compcon-settings-btn { color: var(--text-muted); transition: color 0.2s, transform 0.3s; }
+#compcon-settings-btn:hover { color: var(--border-primary); transform: rotate(90deg); }
 
 .card-body { 
     padding: 20px 30px; 
@@ -224,7 +247,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     opacity: 0;
-    visibility: hidden; /* Oculta elementos al navegador */
+    visibility: hidden; 
     transition: max-height 0.25s linear, padding 0.25s linear, opacity 0.1s linear, visibility 0s linear 0.25s;
 }
 
@@ -254,24 +277,89 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 }
 .inv-del-btn:hover { background: rgba(255, 69, 0, 0.2); }
 
-/* --- CSS ESPECÍFICO DE COMP/CON (ABAJO) --- */
-#compcon-card {
-    padding: 0;
-    max-width: 120%; 
+/* --- MENU DROPDOWN DE COMPCON --- */
+.compcon-dropdown {
+    position: absolute;
+    top: 65px; 
+    right: 20px;
+    background: rgba(5, 5, 9, 0.98);
+    border: 1px solid var(--border-primary);
+    padding: 15px;
+    border-radius: 2px;
+    z-index: 50;
+    box-shadow: 0 5px 15px rgba(0,255,255,0.1);
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: all 0.2s ease;
+}
+.compcon-dropdown.hidden {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    pointer-events: none;
 }
 
+.shape-btn { transition: all 0.2s; }
+.shape-btn.active-shape {
+    background: rgba(0, 255, 255, 0.1);
+    border-color: var(--border-primary);
+    color: var(--border-primary);
+}
+
+
+/* --- CSS ESPECÍFICO DE COMP/CON (VUELVE A LA LÓGICA ANTERIOR DE ANCHOS) --- */
+#compcon-card {
+    padding: 0;
+    width: 100%;
+    margin: 0 auto; /* Centrado cuando está abajo */
+    transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s ease;
+}
+
+/* HORIZONTAL: 100% de ancho, siempre abajo */
+#compcon-card.shape-horizontal {
+    max-width: 100%;
+}
+
+/* CUADRADO: 850px de ancho */
+#compcon-card.shape-square {
+    max-width: 850px;
+}
+
+/* VERTICAL: 450px de ancho */
+#compcon-card.shape-vertical {
+    max-width: 450px;
+}
+
+/* Cuando está DENTRO del bloque superior (posicionado vía JS) */
+.top-boards-container #compcon-card {
+    grid-column: 2; /* Segunda columna, bajo inventario */
+    grid-row: 2;
+    margin: 0; /* Sin márgenes automáticos para pegarse a la derecha */
+    width: 100% !important; /* Ocupa todo el ancho de la columna del grid */
+    height: 100%; /* Se estira para rellenar la fila del grid */
+}
+
+/* Ajuste de altura fija de la app para todas las formas (vuelve a 80vh) */
 .compcon-app-body {
     padding: 0;
-    height: 80vh; 
+    height: 80vh; /* Altura estándar */
     visibility: visible;
-    transition: max-height 0.25s linear, opacity 0.1s linear, visibility 0s linear 0s;
+    transition: max-height 0.25s linear, height 0.25s linear, opacity 0.1s linear, visibility 0s linear 0s;
 }
+
+/* Cuando se mueve ARRIBA, le damos una altura mínima para que tenga sentido el grid */
+.top-boards-container .compcon-app-body {
+    min-height: 600px;
+}
+
 
 .compcon-app-body.collapsed {
     max-height: 0;
+    height: 0 !important; /* Fuerza el cierre completo */
     opacity: 0;
-    visibility: hidden; /* Corta el robo de foco (salto de cámara) de raíz */
-    transition: max-height 0.25s linear, opacity 0.1s linear, visibility 0s linear 0.25s;
+    visibility: hidden; 
+    transition: max-height 0.25s linear, height 0.25s linear, opacity 0.1s linear, visibility 0s linear 0.25s;
 }
 
 #compcon-frame {
@@ -281,21 +369,26 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     background-color: #000;
 }
 
-/* --- RESPONSIVIDAD Y ANIMACIONES ESPECIALES --- */
-@media (min-width: 1100px) {
-    #inventory-card { max-width: 450px; }
-    .inventory-inner { width: 450px; } 
-
-    #inventory-card.collapsed-card {
-        max-width: 60px; 
-        flex-basis: 60px;
-        cursor: pointer;
+/* --- RESPONSIVIDAD --- */
+@media (max-width: 1100px) {
+    /* Desactivamos el layout dinámico de columnas pegadas en pantallas medianas/chicas */
+    .top-boards-container {
+        grid-template-columns: 1fr !important; /* Todo en una columna */
     }
-    #inventory-card.collapsed-card .card-body { opacity: 0; pointer-events: none; visibility: hidden; }
-    #inventory-card.collapsed-card .toggle-header h3 { opacity: 0; }
-    #inventory-card.collapsed-card #inventory-chevron { 
-        position: absolute; left: 20px; top: 20px; transform: rotate(90deg); font-size: 1.2rem;
+    #main-card { grid-column: 1; grid-row: auto; justify-self: center; }
+    #inventory-card { grid-column: 1; grid-row: auto; width: 100% !important; max-width: 650px; margin: 0 auto; }
+    
+    /* Si JS lo movió arriba, lo forzamos a verse bien abajo del inventario */
+    .top-boards-container #compcon-card {
+        grid-column: 1;
+        grid-row: auto;
+        margin: 0 auto;
+        width: 100% !important;
     }
+    
+    /* Restauramos los anchos maximos antiguos para el card centrado */
+    #compcon-card.shape-square { max-width: 850px; }
+    #compcon-card.shape-vertical { max-width: 450px; }
 }
 
 @media (max-width: 600px) {
@@ -314,5 +407,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     .toggle-header { padding: 15px; }
     .card-body { padding: 15px; }
     .pilot-stats-row { justify-content: space-between; gap: 10px; }
-    .compcon-app-body { height: 70vh; } 
+    
+    /* Forzamos 100% de ancho en mobile */
+    #compcon-card { max-width: 100% !important; }
+    .compcon-app-body { height: 75vh !important; } 
 }
