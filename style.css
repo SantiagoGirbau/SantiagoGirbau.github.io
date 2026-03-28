@@ -345,6 +345,30 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     border-radius: 0 0 2px 2px;
 }
 
+/* --- LÍMITE Y SCROLL PARA LA LISTA DE INVENTARIO --- */
+#inventory-list {
+    max-height: 120px; /* Límite de altura. Podés ajustarlo si lo querés más corto o largo */
+    overflow-y: auto;
+    padding-right: 8px; /* Espacio para que el scroll no pise los botones [X] */
+    margin-bottom: 10px;
+}
+
+/* Diseño de la barra de scroll (Tema Tech) */
+#inventory-list::-webkit-scrollbar {
+    width: 6px;
+}
+#inventory-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+}
+#inventory-list::-webkit-scrollbar-thumb {
+    background: var(--border-primary);
+    border-radius: 3px;
+}
+#inventory-list::-webkit-scrollbar-thumb:hover {
+    background: var(--border-secondary);
+}
+
 /* --- RESPONSIVIDAD --- */
 @media (max-width: 1100px) {
     .top-boards-container {
