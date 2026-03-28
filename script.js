@@ -442,7 +442,7 @@ function loadBoardState() {
 
     // CARGAR ESTADO DE COMP/CON
     if (state.isCompconOpen === true) {
-        compconFrame.src = "https://compcon.app/"; 
+        compconFrame.src = "https://compcon.app/#/pilot_management"; 
         compconBody.classList.remove('collapsed');
         compconToggle.classList.remove('collapsed-header');
     }
