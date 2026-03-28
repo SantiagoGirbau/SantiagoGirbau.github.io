@@ -90,11 +90,9 @@ document.querySelectorAll('.pip').forEach(pip => {
         if (type === 'shield') filledState = 'shield';
 
         if (!isCapacityLocked) {
-            // MODO DESBLOQUEADO (Ajuste de Capacidad sin fatiga)
             const clickedIndex = allPips.indexOf(this);
             let newFillLevel = clickedIndex;
 
-            // Si tocamos el último pip lleno, lo vaciamos para poder bajar a 0
             if (currentState === filledState) {
                 if (clickedIndex === allPips.length - 1 || allPips[clickedIndex + 1].getAttribute('data-state') !== filledState) {
                     newFillLevel = clickedIndex - 1;
@@ -108,15 +106,11 @@ document.querySelectorAll('.pip').forEach(pip => {
             });
 
         } else {
-            // MODO BLOQUEADO (Barra de progreso con Daño/Fatiga)
             if (this.getAttribute('data-enabled') !== 'true') return;
             
             const enabledPips = allPips.filter(p => p.getAttribute('data-enabled') === 'true');
             const clickedIndex = enabledPips.indexOf(this);
             
-            // NUEVA LÓGICA DE DAÑO Y CURACIÓN
-            // Si tocamos un pip lleno, estamos recibiendo daño HASTA ESE PIP INCLUSIVE.
-            // Si tocamos un pip fatigado, nos estamos curando HASTA ESE PIP INCLUSIVE.
             const newFillLevel = (currentState === filledState) ? clickedIndex - 1 : clickedIndex;
 
             enabledPips.forEach((p, i) => {
@@ -248,9 +242,10 @@ shapeBtns.forEach(btn => {
     });
 });
 
+// CORRECCIÓN: Actualización de la URL del Iframe
 function loadCompConIframe() {
     if (!compconFrame.getAttribute('src')) {
-        compconFrame.setAttribute('src', 'https://compcon.app/#/roster');
+        compconFrame.setAttribute('src', 'https://compcon.app/#/pilot_management');
     }
 }
 

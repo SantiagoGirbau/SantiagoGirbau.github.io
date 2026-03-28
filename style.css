@@ -35,42 +35,29 @@ body {
 input, select, textarea { user-select: auto; -webkit-user-select: auto; }
 figure { margin: 0; padding: 0; }
 
-/* Contenedor Principal (Aumentado a 1600px) */
+/* Contenedor Principal */
 #app-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 20px;
     width: 100%;
-    max-width: 1600px; /* Ocupa más pantalla */
+    max-width: 1600px; 
     transition: max-width 0.4s ease;
 }
 
-/* Bloque Superior (Grid para layout dinámico) */
+/* Bloque Superior */
 .top-boards-container {
     display: grid;
-    grid-template-columns: 1fr 450px; /* Base por defecto (vertical) */
+    grid-template-columns: 1fr 450px; 
     gap: 20px;
     width: 100%;
     transition: grid-template-columns 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* Clases de layout controladas por JS en app-container */
-/* Modo por defecto o colapsado: columna derecha de 450px */
-.app-layout-stats-inv .top-boards-container {
-    grid-template-columns: 1fr 450px;
-}
-
-/* Modo Cuadrado MOVIDO arriba: columna derecha de 850px */
-.app-layout-full-moved-square .top-boards-container {
-    grid-template-columns: 1fr 850px;
-}
-
-/* Modo Vertical MOVIDO arriba: columna derecha de 450px */
-.app-layout-full-moved-vertical .top-boards-container {
-    grid-template-columns: 1fr 450px;
-}
-
+.app-layout-stats-inv .top-boards-container { grid-template-columns: 1fr 450px; }
+.app-layout-full-moved-square .top-boards-container { grid-template-columns: 1fr 850px; }
+.app-layout-full-moved-vertical .top-boards-container { grid-template-columns: 1fr 450px; }
 
 .card {
     background-color: var(--card-bg);
@@ -87,21 +74,19 @@ figure { margin: 0; padding: 0; }
     transition: border-color 0.3s ease;
 }
 
-/* Stats siempre a la izquierda, ocupando todo el alto disponible en el grid */
 #main-card {
     grid-column: 1;
-    grid-row: 1 / span 2; /* Ocupa 2 filas si compcon se mete abajo */
+    grid-row: 1 / span 2; 
     align-self: start;
-    max-width: 750px; /* Límite para que no se estire feo */
-    justify-self: end; /* Pegado a la columna derecha */
+    max-width: 750px; 
+    justify-self: end; 
 }
 
-/* Inventario siempre arriba a la derecha */
 #inventory-card {
     grid-column: 2;
     grid-row: 1;
     padding: 0; 
-    width: 100%; /* Ocupa el ancho de la columna definido en el grid parent */
+    width: 100%; 
     transition: width 0.4s ease;
 }
 
@@ -210,7 +195,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 .rest-btn { width: auto !important; padding: 6px 20px !important; border-color: var(--border-primary) !important; color: var(--border-primary) !important; font-weight: bold; letter-spacing: 1px; transition: all 0.3s ease; }
 .rest-btn:hover { background: rgba(255, 255, 255, 0.1); }
 
-/* --- CSS COMÚN DE TABLEROS COLAPSABLES Y ANTI-SALTO DE CÁMARA --- */
+/* --- CSS COMÚN DE TABLEROS COLAPSABLES --- */
 .inventory-inner, #compcon-frame {
     width: 100%;
     transition: opacity 0.1s linear;
@@ -308,55 +293,45 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 }
 
 
-/* --- CSS ESPECÍFICO DE COMP/CON (VUELVE A LA LÓGICA ANTERIOR DE ANCHOS) --- */
+/* --- CSS ESPECÍFICO DE COMP/CON --- */
 #compcon-card {
     padding: 0;
     width: 100%;
-    margin: 0 auto; /* Centrado cuando está abajo */
+    margin: 0 auto; 
     transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s ease;
+    
+    /* CORRECCIÓN: Permite que el menú dropdown se vea incluso si el tablero se achica/cierra */
+    overflow: visible !important; 
 }
 
-/* HORIZONTAL: 100% de ancho, siempre abajo */
-#compcon-card.shape-horizontal {
-    max-width: 100%;
-}
+#compcon-card.shape-horizontal { max-width: 100%; }
+#compcon-card.shape-square { max-width: 850px; }
+#compcon-card.shape-vertical { max-width: 450px; }
 
-/* CUADRADO: 850px de ancho */
-#compcon-card.shape-square {
-    max-width: 850px;
-}
-
-/* VERTICAL: 450px de ancho */
-#compcon-card.shape-vertical {
-    max-width: 450px;
-}
-
-/* Cuando está DENTRO del bloque superior (posicionado vía JS) */
 .top-boards-container #compcon-card {
-    grid-column: 2; /* Segunda columna, bajo inventario */
+    grid-column: 2; 
     grid-row: 2;
-    margin: 0; /* Sin márgenes automáticos para pegarse a la derecha */
-    width: 100% !important; /* Ocupa todo el ancho de la columna del grid */
-    height: 100%; /* Se estira para rellenar la fila del grid */
+    margin: 0; 
+    width: 100% !important; 
+    height: 100%; 
 }
 
-/* Ajuste de altura fija de la app para todas las formas (vuelve a 80vh) */
 .compcon-app-body {
     padding: 0;
-    height: 80vh; /* Altura estándar */
+    height: 80vh; 
     visibility: visible;
     transition: max-height 0.25s linear, height 0.25s linear, opacity 0.1s linear, visibility 0s linear 0s;
 }
 
-/* Cuando se mueve ARRIBA, le damos una altura mínima para que tenga sentido el grid */
-.top-boards-container .compcon-app-body {
+/* CORRECCIÓN: Min-height anulado si está colapsado */
+.top-boards-container .compcon-app-body:not(.collapsed) {
     min-height: 600px;
 }
 
-
 .compcon-app-body.collapsed {
     max-height: 0;
-    height: 0 !important; /* Fuerza el cierre completo */
+    height: 0 !important; 
+    min-height: 0 !important; /* CORRECCIÓN: Fuerza a que desaparezca en el grid superior */
     opacity: 0;
     visibility: hidden; 
     transition: max-height 0.25s linear, height 0.25s linear, opacity 0.1s linear, visibility 0s linear 0.25s;
@@ -367,18 +342,17 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     height: 100%; 
     border: none;
     background-color: #000;
+    border-radius: 0 0 2px 2px;
 }
 
 /* --- RESPONSIVIDAD --- */
 @media (max-width: 1100px) {
-    /* Desactivamos el layout dinámico de columnas pegadas en pantallas medianas/chicas */
     .top-boards-container {
-        grid-template-columns: 1fr !important; /* Todo en una columna */
+        grid-template-columns: 1fr !important; 
     }
     #main-card { grid-column: 1; grid-row: auto; justify-self: center; }
     #inventory-card { grid-column: 1; grid-row: auto; width: 100% !important; max-width: 650px; margin: 0 auto; }
     
-    /* Si JS lo movió arriba, lo forzamos a verse bien abajo del inventario */
     .top-boards-container #compcon-card {
         grid-column: 1;
         grid-row: auto;
@@ -386,7 +360,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
         width: 100% !important;
     }
     
-    /* Restauramos los anchos maximos antiguos para el card centrado */
     #compcon-card.shape-square { max-width: 850px; }
     #compcon-card.shape-vertical { max-width: 450px; }
 }
@@ -408,7 +381,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     .card-body { padding: 15px; }
     .pilot-stats-row { justify-content: space-between; gap: 10px; }
     
-    /* Forzamos 100% de ancho en mobile */
     #compcon-card { max-width: 100% !important; }
     .compcon-app-body { height: 75vh !important; } 
 }
