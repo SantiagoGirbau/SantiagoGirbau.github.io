@@ -13,13 +13,6 @@ const stats = [
 
 const container = document.getElementById('stats-container');
 
-const statCycle = ['empty', 'stamina', 'fatigue'];
-const statCombatCycle = ['stamina', 'fatigue'];
-const healthCycle = ['empty', 'health', 'fatigue'];
-const healthCombatCycle = ['health', 'fatigue'];
-const shieldCycle = ['empty', 'shield', 'fatigue'];
-const shieldCombatCycle = ['shield', 'fatigue'];
-
 const vitalsHtml = `
     <section class="col vitals-field">
         <section class="vital-row">
@@ -84,34 +77,53 @@ function updatePipVisuals(pip, state, baseColor) {
 
 let isCapacityLocked = false;
 
+// --- LÓGICA DE BARRAS INTELIGENTES (PIPS) ---
 document.querySelectorAll('.pip').forEach(pip => {
     pip.addEventListener('click', function () {
+        const container = this.parentElement;
+        const allPips = Array.from(container.querySelectorAll('.pip'));
         const type = this.getAttribute('data-type');
-        const baseColor = this.getAttribute('data-color');
-        let currentState = this.getAttribute('data-state');
+        const currentState = this.getAttribute('data-state');
 
-        let activeCycle, activeCombatCycle;
-        if (type === 'health') {
-            activeCycle = healthCycle; activeCombatCycle = healthCombatCycle;
-        } else if (type === 'shield') {
-            activeCycle = shieldCycle; activeCombatCycle = shieldCombatCycle;
+        let filledState = 'stamina';
+        if (type === 'health') filledState = 'health';
+        if (type === 'shield') filledState = 'shield';
+
+        if (!isCapacityLocked) {
+            // MODO DESBLOQUEADO (Ajuste de Capacidad sin fatiga)
+            const clickedIndex = allPips.indexOf(this);
+            let newFillLevel = clickedIndex;
+
+            // Si tocamos el último pip lleno, lo vaciamos para poder bajar a 0
+            if (currentState === filledState) {
+                if (clickedIndex === allPips.length - 1 || allPips[clickedIndex + 1].getAttribute('data-state') !== filledState) {
+                    newFillLevel = clickedIndex - 1;
+                }
+            }
+
+            allPips.forEach((p, i) => {
+                const nextState = i <= newFillLevel ? filledState : 'empty';
+                p.setAttribute('data-state', nextState);
+                updatePipVisuals(p, nextState, p.getAttribute('data-color'));
+            });
+
         } else {
-            activeCycle = statCycle; activeCombatCycle = statCombatCycle;
-        }
-
-        if (isCapacityLocked) {
+            // MODO BLOQUEADO (Barra de progreso con Daño/Fatiga)
             if (this.getAttribute('data-enabled') !== 'true') return;
-            let nextIndex = (activeCombatCycle.indexOf(currentState) + 1) % activeCombatCycle.length;
-            if (nextIndex === 0 && activeCombatCycle.indexOf(currentState) === -1) nextIndex = 1;
+            
+            const enabledPips = allPips.filter(p => p.getAttribute('data-enabled') === 'true');
+            const clickedIndex = enabledPips.indexOf(this);
+            
+            // NUEVA LÓGICA DE DAÑO Y CURACIÓN
+            // Si tocamos un pip lleno, estamos recibiendo daño HASTA ESE PIP INCLUSIVE.
+            // Si tocamos un pip fatigado, nos estamos curando HASTA ESE PIP INCLUSIVE.
+            const newFillLevel = (currentState === filledState) ? clickedIndex - 1 : clickedIndex;
 
-            let nextState = activeCombatCycle[nextIndex];
-            this.setAttribute('data-state', nextState);
-            updatePipVisuals(this, nextState, baseColor);
-        } else {
-            let nextIndex = (activeCycle.indexOf(currentState) + 1) % activeCycle.length;
-            let nextState = activeCycle[nextIndex];
-            this.setAttribute('data-state', nextState);
-            updatePipVisuals(this, nextState, baseColor);
+            enabledPips.forEach((p, i) => {
+                const nextState = i <= newFillLevel ? filledState : 'fatigue';
+                p.setAttribute('data-state', nextState);
+                updatePipVisuals(p, nextState, p.getAttribute('data-color'));
+            });
         }
         saveBoardState();
     });
@@ -132,6 +144,9 @@ document.querySelectorAll('.stat-dice').forEach(input => {
 });
 
 // --- VARIABLES ---
+const appContainer = document.getElementById('app-container');
+const topBoardsContainer = document.querySelector('.top-boards-container');
+
 const settingsToggle = document.getElementById('settings-toggle');
 const settingsPanel = document.getElementById('settings-panel');
 const closeSettings = document.getElementById('close-settings');
@@ -162,7 +177,6 @@ const inventoryList = document.getElementById('inventory-list');
 const pilotNotes = document.getElementById('pilot-notes');
 const creditsInput = document.getElementById('credits-input');
 
-// VARIABLES COMP/CON
 const compconCard = document.getElementById('compcon-card');
 const compconToggle = document.getElementById('compcon-toggle');
 const compconBody = document.getElementById('compcon-body');
@@ -188,7 +202,6 @@ creditsInput.addEventListener('input', saveBoardState);
 
 // --- LÓGICA DE APERTURA DE TABLEROS Y FORMAS ---
 
-// Inventario (Superior)
 inventoryCard.addEventListener('click', () => {
     if (window.innerWidth >= 1100 && inventoryCard.classList.contains('collapsed-card')) {
         inventoryCard.classList.remove('collapsed-card');
@@ -210,66 +223,45 @@ inventoryToggle.addEventListener('click', (e) => {
 });
 
 
-// COMP/CON - Lógica del Engranaje de Forma
 compconSettingsBtn.addEventListener('click', (e) => {
-    e.stopPropagation(); // Evita que se abra/cierre el tablero entero al tocar la tuerquita
+    e.stopPropagation(); 
     compconSettingsMenu.classList.toggle('hidden');
 });
 
-// Evitar que hacer clic adentro del menú cierre la ventana de compcon
 compconSettingsMenu.addEventListener('click', (e) => {
     e.stopPropagation();
 });
 
-// COMP/CON - Aplicar Forma (Horizontal, Cuadrado, Vertical)
 shapeBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         const shape = btn.getAttribute('data-shape');
         
-        // Sacamos todas las formas previas y ponemos la nueva
         compconCard.classList.remove('shape-horizontal', 'shape-square', 'shape-vertical');
         compconCard.classList.add(`shape-${shape}`);
         
-        // Pintamos el botón activo
         shapeBtns.forEach(b => b.classList.remove('active-shape'));
         btn.classList.add('active-shape');
         
-        // Ocultamos el menú (opcional para UX limpia)
         compconSettingsMenu.classList.add('hidden');
-        
+        handleCompConPosition();
         saveBoardState();
     });
 });
 
-// COMP/CON - Botón Principal (Abre y Cierra la terminal)
-function loadCompConSafely() {
+function loadCompConIframe() {
     if (!compconFrame.getAttribute('src')) {
-        const currentScrollY = window.scrollY;
-        const currentScrollX = window.scrollX;
-        const lockCamera = () => window.scrollTo(currentScrollX, currentScrollY);
-        
-        window.addEventListener('scroll', lockCamera);
-        compconFrame.setAttribute('src', 'https://compcon.app/#/pilot_management');
-        
-        setTimeout(() => {
-            window.removeEventListener('scroll', lockCamera);
-        }, 5000);
+        compconFrame.setAttribute('src', 'https://compcon.app/#/roster');
     }
 }
 
-// COMP/CON - Botón Principal (Abre y Cierra la terminal)
 compconToggle.addEventListener('click', () => {
-    if (!compconFrame.getAttribute('src')) {
-        // Carga directa y limpia a la URL que elegiste
-        compconFrame.setAttribute('src', 'https://compcon.app/#/pilot_management');
-    }
-    
+    loadCompConIframe();
     compconBody.classList.toggle('collapsed');
     compconToggle.classList.toggle('collapsed-header');
     compconSettingsMenu.classList.add('hidden'); 
+    handleCompConPosition();
     saveBoardState();
 });
-
 
 function createInventoryItem(value = "") {
     const itemDiv = document.createElement('article');
@@ -367,7 +359,6 @@ pipsLockContainer.addEventListener('click', () => {
     saveBoardState();
 });
 
-// Botones del menú
 unlockNameBtn.addEventListener('click', () => {
     if (lockIconContainer.classList.contains('locked-state')) lockIconContainer.click();
     settingsPanel.classList.remove('open');
@@ -377,7 +368,6 @@ unlockPipsBtn.addEventListener('click', () => {
     if (isCapacityLocked) pipsLockContainer.click();
     settingsPanel.classList.remove('open');
 });
-
 
 restBtn.addEventListener('click', () => {
     document.querySelectorAll('.pip').forEach(pip => {
@@ -390,12 +380,6 @@ restBtn.addEventListener('click', () => {
 
         if (isCapacityLocked) {
             if (pip.getAttribute('data-enabled') === 'true') {
-                pip.setAttribute('data-state', targetState);
-                updatePipVisuals(pip, targetState, baseColor);
-            }
-        } else {
-            const state = pip.getAttribute('data-state');
-            if (state === 'fatigue' || (type === 'health' && state !== 'empty' && state !== 'null') || (type === 'shield' && state !== 'empty' && state !== 'null')) {
                 pip.setAttribute('data-state', targetState);
                 updatePipVisuals(pip, targetState, baseColor);
             }
@@ -420,11 +404,8 @@ themeSelector.addEventListener('change', (e) => {
     saveBoardState();
 });
 
-
 // --- SISTEMA DE PERSISTENCIA LOCAL ---
 function saveBoardState() {
-    
-    // Identificar qué forma está activa actualmente
     let activeShape = 'horizontal';
     if (compconCard.classList.contains('shape-square')) activeShape = 'square';
     if (compconCard.classList.contains('shape-vertical')) activeShape = 'vertical';
@@ -446,9 +427,8 @@ function saveBoardState() {
             .filter(val => val.trim() !== ''),
 
         isInventoryOpen: !inventoryCard.classList.contains('collapsed-card') && !inventoryBody.classList.contains('collapsed'),
-
         isCompconOpen: !compconBody.classList.contains('collapsed'),
-        compconShape: activeShape, // GUARDAR LA FORMA ELEGIDA
+        compconShape: activeShape, 
 
         statValues: Array.from(document.querySelectorAll('.stat-dice')).map(input => input.value),
         pips: Array.from(document.querySelectorAll('.pip')).map(pip => ({
@@ -498,7 +478,6 @@ function loadBoardState() {
         else { inventoryBody.classList.add('collapsed'); inventoryToggle.classList.add('collapsed-header'); }
     }
 
-    // CARGAR ESTADO Y FORMA DE COMP/CON
     if (state.compconShape) {
         compconCard.classList.remove('shape-horizontal', 'shape-square', 'shape-vertical');
         compconCard.classList.add(`shape-${state.compconShape}`);
@@ -513,11 +492,12 @@ function loadBoardState() {
     }
     
     if (state.isCompconOpen === true) {
-        // Inyecta el iframe directamente sin anclas que traben la pantalla
-        compconFrame.setAttribute('src', 'https://compcon.app/#/pilot_management');
+        loadCompConIframe();
         compconBody.classList.remove('collapsed');
         compconToggle.classList.remove('collapsed-header');
     }
+    
+    handleCompConPosition();
 
     const statInputs = document.querySelectorAll('.stat-dice');
     if (state.statValues) {
@@ -694,6 +674,33 @@ confirmResetBtn.addEventListener('click', () => {
     req.onerror = function () { window.location.reload(); };
     req.onblocked = function () { window.location.reload(); };
 });
+
+function handleCompConPosition() {
+    const isHorizontal = compconCard.classList.contains('shape-horizontal');
+    const isSquare = compconCard.classList.contains('shape-square');
+    const isVertical = compconCard.classList.contains('shape-vertical');
+    const isLoaded = !!compconFrame.getAttribute('src'); 
+    
+    const currentParent = compconCard.parentNode;
+    
+    appContainer.classList.remove('app-layout-stats-inv', 'app-layout-full-moved-square', 'app-layout-full-moved-vertical');
+    
+    if ((isSquare || isVertical) && isLoaded) {
+        if (currentParent !== topBoardsContainer) {
+            topBoardsContainer.appendChild(compconCard);
+        }
+        
+        if (isSquare) appContainer.classList.add('app-layout-full-moved-square');
+        if (isVertical) appContainer.classList.add('app-layout-full-moved-vertical');
+        
+    } else {
+        if (currentParent !== appContainer) {
+            appContainer.appendChild(compconCard);
+        }
+        
+        appContainer.classList.add('app-layout-stats-inv');
+    }
+}
 
 // Inicialización
 initializeBoardColors();
