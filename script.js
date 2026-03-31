@@ -5,10 +5,10 @@ const stats = [
     { id: 'mechanics', name: 'Mechanics', color: '#00ffff', type: 'stat' },
     { id: 'tech', name: 'Tech', color: '#00ff37', type: 'stat' },
     { id: 'meds', name: 'Meds', color: '#ff2a2a', type: 'stat' },
-    { id: 'spotting', name: 'Spotting', color: '#0004ff', type: 'stat' },
+    { id: 'spotting', name: 'Spotting', color: '#0400ff', type: 'stat' },
     { id: 'charisma', name: 'Charisma', color: '#ff00ff', type: 'stat' },
     { id: 'paracausal', name: 'Paracausal', color: '#ff00aa', type: 'stat' },
-    { id: 'misc', name: 'Misc', color: '#967bb6', type: 'stat' }
+    { id: 'misc', name: 'Misc', color: '#864bad', type: 'stat' }
 ];
 
 const container = document.getElementById('stats-container');
@@ -150,6 +150,11 @@ const lockIconSvg = document.getElementById('lock-icon-svg');
 const pilotNameInput = document.getElementById('pilot-name');
 const mechClassInput = document.getElementById('mech-class');
 
+// Avatar Vars
+const avatarContainer = document.getElementById('avatar-container');
+const avatarUpload = document.getElementById('avatar-upload');
+const avatarPlaceholder = document.getElementById('avatar-placeholder');
+
 const allGritInputs = document.querySelectorAll('.grit-input');
 const allGritLabels = document.querySelectorAll('.grit-label');
 const levelInput = document.getElementById('level-value');
@@ -170,6 +175,13 @@ const addItemBtn = document.getElementById('add-item-btn');
 const inventoryList = document.getElementById('inventory-list');
 const pilotNotes = document.getElementById('pilot-notes');
 const creditsInput = document.getElementById('credits-input');
+
+// Inventory Modal Vars
+const expandedInvModal = document.getElementById('expanded-inv-modal');
+const closeExpandedInvBtn = document.getElementById('close-expanded-inv');
+const globalExpandInvBtn = document.getElementById('global-expand-inv-btn');
+const expandedInvList = document.getElementById('expanded-inv-list');
+const addExpItemBtn = document.getElementById('add-exp-item-btn');
 
 const compconCard = document.getElementById('compcon-card');
 const compconToggle = document.getElementById('compcon-toggle');
@@ -192,6 +204,21 @@ gritInput.addEventListener('input', saveBoardState);
 evasionInput.addEventListener('input', saveBoardState);
 pilotNotes.addEventListener('input', saveBoardState);
 creditsInput.addEventListener('input', saveBoardState);
+
+// --- LÓGICA DEL AVATAR ---
+avatarContainer.addEventListener('click', () => avatarUpload.click());
+
+avatarUpload.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        avatarContainer.style.backgroundImage = `url(${evt.target.result})`;
+        avatarPlaceholder.style.display = 'none';
+        saveBoardState();
+    };
+    reader.readAsDataURL(file);
+});
 
 
 // --- LÓGICA DE APERTURA DE TABLEROS Y FORMAS ---
@@ -242,7 +269,6 @@ shapeBtns.forEach(btn => {
     });
 });
 
-// CORRECCIÓN: Actualización de la URL del Iframe
 function loadCompConIframe() {
     if (!compconFrame.getAttribute('src')) {
         compconFrame.setAttribute('src', 'https://compcon.app/#/pilot_management');
@@ -250,7 +276,7 @@ function loadCompConIframe() {
 }
 
 compconToggle.addEventListener('click', () => {
-loadCompConIframe();
+    loadCompConIframe();
     compconBody.classList.toggle('collapsed');
     compconToggle.classList.toggle('collapsed-header');
     compconSettingsMenu.classList.add('hidden'); 
@@ -258,29 +284,110 @@ loadCompConIframe();
     saveBoardState();
 });
 
-function createInventoryItem(value = "") {
-    const itemDiv = document.createElement('article');
-    itemDiv.className = 'inventory-item';
+// --- LÓGICA DEL INVENTARIO EXPANDIDO ---
 
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'inv-input';
-    input.value = value;
-    input.placeholder = "ITEM // QTY // DESC";
-    input.addEventListener('blur', saveBoardState);
+globalExpandInvBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    expandedInvModal.classList.add('active');
+});
+
+closeExpandedInvBtn.addEventListener('click', () => {
+    expandedInvModal.classList.remove('active');
+});
+
+addExpItemBtn.addEventListener('click', () => {
+    createInventoryItem();
+    saveBoardState();
+    setTimeout(() => expandedInvList.scrollTop = expandedInvList.scrollHeight, 50);
+});
+
+// Función creadora dual (crea ítem en tarjeta y en modal a la vez)
+function createInventoryItem(id = Date.now() + Math.random(), nameValue = "", descValue = "") {
+    
+    // 1. CREAR VERSIÓN COMPACTA
+    const compItem = document.createElement('article');
+    compItem.className = 'inventory-item';
+    compItem.dataset.id = id;
+
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'inv-input';
+    nameInput.value = nameValue;
+    nameInput.placeholder = "ITEM // QTY";
+
+    const expandBtn = document.createElement('button');
+    expandBtn.className = 'inv-expand-btn';
+    expandBtn.innerHTML = '⛶';
+    expandBtn.title = 'Abrir Detalles';
 
     const delBtn = document.createElement('button');
     delBtn.className = 'inv-del-btn';
     delBtn.textContent = 'X';
-    delBtn.title = 'Eliminar Item';
-    delBtn.addEventListener('click', () => {
-        itemDiv.remove();
-        saveBoardState();
+
+    compItem.appendChild(nameInput);
+    compItem.appendChild(expandBtn);
+    compItem.appendChild(delBtn);
+    inventoryList.appendChild(compItem);
+
+    // 2. CREAR VERSIÓN EXPANDIDA (MODAL)
+    const expItem = document.createElement('article');
+    expItem.className = 'expanded-inv-item';
+    expItem.dataset.id = id;
+
+    const expHeader = document.createElement('div');
+    expHeader.className = 'exp-inv-header';
+
+    const expNameInput = document.createElement('input');
+    expNameInput.type = 'text';
+    expNameInput.className = 'inv-input';
+    expNameInput.value = nameValue;
+    expNameInput.placeholder = "Nombre del Item / Cantidad";
+    
+    const toggleDescBtn = document.createElement('button');
+    toggleDescBtn.className = 'inv-expand-btn';
+    toggleDescBtn.innerHTML = descValue ? '▲' : '▼'; 
+    toggleDescBtn.title = "Alternar Descripción";
+
+    const expDelBtn = document.createElement('button');
+    expDelBtn.className = 'inv-del-btn';
+    expDelBtn.textContent = 'X';
+
+    expHeader.appendChild(expNameInput);
+    expHeader.appendChild(toggleDescBtn);
+    expHeader.appendChild(expDelBtn);
+
+    const descArea = document.createElement('textarea');
+    descArea.className = 'lancer-textarea exp-inv-desc collapsed';
+    descArea.value = descValue;
+    descArea.placeholder = "Descripción del objeto, efectos, notas...";
+
+    expItem.appendChild(expHeader);
+    expItem.appendChild(descArea);
+    expandedInvList.appendChild(expItem);
+
+    // 3. EVENTOS DE SINCRONIZACIÓN
+    nameInput.addEventListener('input', (e) => { expNameInput.value = e.target.value; saveBoardState(); });
+    expNameInput.addEventListener('input', (e) => { nameInput.value = e.target.value; saveBoardState(); });
+    descArea.addEventListener('input', saveBoardState);
+
+    // 4. EVENTOS DE BORRADO (Borra en ambas vistas a la vez)
+    const deleteAction = () => { compItem.remove(); expItem.remove(); saveBoardState(); };
+    delBtn.addEventListener('click', deleteAction);
+    expDelBtn.addEventListener('click', deleteAction);
+
+    // 5. EVENTO ABRIR DESDE COMPACTA
+    expandBtn.addEventListener('click', () => {
+        expandedInvModal.classList.add('active'); // Abre el modal grande
+        descArea.classList.remove('collapsed');   // Despliega la descripción de ESTE ítem
+        toggleDescBtn.innerHTML = '▲';
+        setTimeout(() => expItem.scrollIntoView({ behavior: 'smooth', block: 'center' }), 10);
     });
 
-    itemDiv.appendChild(input);
-    itemDiv.appendChild(delBtn);
-    inventoryList.appendChild(itemDiv);
+    // 6. EVENTO DESPLEGAR DENTRO DEL MODAL
+    toggleDescBtn.addEventListener('click', () => {
+        descArea.classList.toggle('collapsed');
+        toggleDescBtn.innerHTML = descArea.classList.contains('collapsed') ? '▼' : '▲';
+    });
 }
 
 addItemBtn.addEventListener('click', () => {
@@ -405,6 +512,15 @@ function saveBoardState() {
     if (compconCard.classList.contains('shape-square')) activeShape = 'square';
     if (compconCard.classList.contains('shape-vertical')) activeShape = 'vertical';
     
+    // Leemos siempre desde la vista expandida (es nuestra fuente de verdad)
+    const savedInventory = Array.from(document.querySelectorAll('.expanded-inv-item')).map(item => {
+        return {
+            id: item.dataset.id,
+            name: item.querySelector('.inv-input').value,
+            desc: item.querySelector('.exp-inv-desc').value
+        };
+    }).filter(obj => obj.name.trim() !== '' || obj.desc.trim() !== '');
+
     const state = {
         pilotName: pilotNameInput.value,
         mechClass: mechClassInput.value,
@@ -416,10 +532,9 @@ function saveBoardState() {
         themeColor: document.documentElement.style.getPropertyValue('--border-primary') || '#00ffff',
         notes: pilotNotes.value,
         credits: creditsInput.value,
+        pilotAvatar: avatarContainer.style.backgroundImage, // Guardamos Avatar
 
-        inventory: Array.from(document.querySelectorAll('.inventory-item .inv-input'))
-            .map(inp => inp.value)
-            .filter(val => val.trim() !== ''),
+        inventory: savedInventory,
 
         isInventoryOpen: !inventoryCard.classList.contains('collapsed-card') && !inventoryBody.classList.contains('collapsed'),
         isCompconOpen: !compconBody.classList.contains('collapsed'),
@@ -456,14 +571,23 @@ function loadBoardState() {
     if (state.notes !== undefined) pilotNotes.value = state.notes;
     if (state.credits !== undefined) creditsInput.value = state.credits;
 
+    if (state.pilotAvatar && state.pilotAvatar !== 'none') {
+        avatarContainer.style.backgroundImage = state.pilotAvatar;
+        avatarPlaceholder.style.display = 'none';
+    }
+
+    // CARGAR INVENTARIO DUAL
     inventoryList.innerHTML = '';
+    expandedInvList.innerHTML = ''; 
     if (state.inventory && state.inventory.length > 0) {
-        const validItems = state.inventory.filter(val => val.trim() !== '');
-        if (validItems.length > 0) {
-            validItems.forEach(val => createInventoryItem(val));
-        } else {
-            createInventoryItem();
-        }
+        state.inventory.forEach(val => {
+            // Compatibilidad por si el usuario guardó en el formato antiguo de texto simple
+            if (typeof val === 'string') {
+                if (val.trim() !== '') createInventoryItem(Date.now() + Math.random(), val, "");
+            } else {
+                createInventoryItem(val.id, val.name, val.desc);
+            }
+        });
     } else {
         createInventoryItem();
     }

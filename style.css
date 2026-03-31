@@ -124,7 +124,7 @@ button.mgr-btn.exit:hover { background: rgba(255, 69, 0, 0.2); }
 button.mgr-btn.danger:hover:not(:disabled) { background: rgba(255, 69, 0, 0.2); }
 button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !important; color: #666 !important; }
 
-/* MODAL OVERLAY PARA EL RESET */
+/* MODAL OVERLAY PARA EL RESET E INVENTARIO */
 .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.85); z-index: 100;
@@ -138,10 +138,20 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     padding: 30px; max-width: 400px; width: 90%; text-align: center;
     box-shadow: 0 0 40px rgba(255, 69, 0, 0.3);
 }
+#expanded-inv-modal .modal-box { border-color: var(--border-primary); box-shadow: 0 0 40px rgba(0, 255, 255, 0.2); }
 
+/* CABECERA Y AVATAR */
 .header { display: flex; align-items: flex-start; justify-content: space-between; margin-top: 15px; margin-bottom: 25px; gap: 15px; }
 .header-col-left { display: flex; flex-direction: column; gap: 10px; flex: 2; }
-.header-col-right { display: flex; flex: 1; gap: 10px; align-items: flex-start; }
+.header-col-right { display: flex; flex-direction: column; flex: 1; gap: 10px; align-items: flex-end; }
+.header-col-avatar {
+    width: 85px; height: 85px; border: 2px solid var(--border-primary);
+    background-color: rgba(0,0,0,0.5); background-size: cover; background-position: center;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    transition: filter 0.3s, border-color 0.3s;
+}
+.header-col-avatar:hover { border-color: var(--text-main); filter: brightness(1.2); }
+.avatar-placeholder { color: var(--text-muted); font-size: 2rem; user-select: none; }
 
 .header-name, .header-class { background: rgba(0,0,0,0.5); padding: 10px; font-size: 1.1rem; font-family: var(--font-main); text-transform: uppercase; outline: none; transition: color 0.3s, border-color 0.3s, background 0.3s; box-sizing: border-box; width: 100%; }
 .header-name { border: 1px solid var(--text-main); color: var(--text-main); }
@@ -168,11 +178,12 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 .label { flex: 1; font-weight: bold; padding: 6px 10px; text-transform: uppercase; font-size: 0.9rem; }
 .attr-value { width: 45px; text-align: center; font-weight: bold; font-size: 1.1rem; border: 1px solid var(--border-primary); background: transparent; color: var(--border-primary); font-family: var(--font-main); margin: 0 10px; transition: border-color 0.3s, color 0.3s; }
 
+/* --- PIPS Y HEALTH EN UNA SOLA LÍNEA --- */
 .pips-container { display: flex; gap: 5px; flex-wrap: nowrap; }
 
 .health-pips { 
-    display: grid !important;
-    grid-template-columns: repeat(10, 26px);
+    display: flex !important;
+    flex-wrap: wrap;
     gap: 5px;
 }
 
@@ -247,7 +258,23 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 }
 .lancer-textarea:focus { border-color: var(--border-primary); }
 
+/* --- INVENTARIO COMPACTO Y EXPANDIDO --- */
 .inventory-item { display: flex; gap: 10px; margin-bottom: 8px; }
+.expanded-inv-item {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-primary);
+    padding: 15px; margin-bottom: 10px;
+    display: flex; flex-direction: column; gap: 10px;
+}
+.exp-inv-header { display: flex; gap: 10px; align-items: center; }
+.exp-inv-desc {
+    transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+    overflow: hidden; opacity: 1; min-height: 100px;
+}
+.exp-inv-desc.collapsed {
+    max-height: 0; min-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0; border-color: transparent;
+}
+
 .inv-input {
     flex: 1; background: rgba(0,0,0,0.5); border: 1px solid var(--text-muted);
     color: var(--text-main); font-family: var(--font-main); padding: 8px;
@@ -255,12 +282,26 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 }
 .inv-input:focus { border-color: var(--border-primary); }
 
-.inv-del-btn {
-    width: 35px; background: transparent; border: 1px solid var(--border-secondary);
-    color: var(--border-secondary); font-family: var(--font-main); font-weight: bold;
-    cursor: pointer; transition: all 0.2s;
+.inv-expand-btn, .inv-del-btn {
+    width: 35px; background: transparent; border: 1px solid var(--text-muted);
+    color: var(--text-main); font-family: var(--font-main); font-weight: bold;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;
 }
+.inv-expand-btn:hover { border-color: var(--border-primary); color: var(--border-primary); }
+.inv-del-btn { border-color: var(--border-secondary); color: var(--border-secondary); }
 .inv-del-btn:hover { background: rgba(255, 69, 0, 0.2); }
+
+#inventory-list, #expanded-inv-list {
+    overflow-y: auto; padding-right: 8px;
+}
+#inventory-list { max-height: 150px; margin-bottom: 10px; }
+
+/* Scrollbars */
+#inventory-list::-webkit-scrollbar, #expanded-inv-list::-webkit-scrollbar, #settings-panel::-webkit-scrollbar { width: 6px; }
+#inventory-list::-webkit-scrollbar-track, #expanded-inv-list::-webkit-scrollbar-track, #settings-panel::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); border-radius: 3px; }
+#inventory-list::-webkit-scrollbar-thumb, #expanded-inv-list::-webkit-scrollbar-thumb, #settings-panel::-webkit-scrollbar-thumb { background: var(--border-primary); border-radius: 3px; }
+#inventory-list::-webkit-scrollbar-thumb:hover, #expanded-inv-list::-webkit-scrollbar-thumb:hover { background: var(--border-secondary); }
+
 
 /* --- MENU DROPDOWN DE COMPCON --- */
 .compcon-dropdown {
@@ -292,15 +333,12 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     color: var(--border-primary);
 }
 
-
 /* --- CSS ESPECÍFICO DE COMP/CON --- */
 #compcon-card {
     padding: 0;
     width: 100%;
     margin: 0 auto; 
     transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s ease;
-    
-    /* CORRECCIÓN: Permite que el menú dropdown se vea incluso si el tablero se achica/cierra */
     overflow: visible !important; 
 }
 
@@ -323,7 +361,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     transition: max-height 0.25s linear, height 0.25s linear, opacity 0.1s linear, visibility 0s linear 0s;
 }
 
-/* CORRECCIÓN: Min-height anulado si está colapsado */
 .top-boards-container .compcon-app-body:not(.collapsed) {
     min-height: 600px;
 }
@@ -331,7 +368,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 .compcon-app-body.collapsed {
     max-height: 0;
     height: 0 !important; 
-    min-height: 0 !important; /* CORRECCIÓN: Fuerza a que desaparezca en el grid superior */
+    min-height: 0 !important; 
     opacity: 0;
     visibility: hidden; 
     transition: max-height 0.25s linear, height 0.25s linear, opacity 0.1s linear, visibility 0s linear 0.25s;
@@ -345,43 +382,15 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     border-radius: 0 0 2px 2px;
 }
 
-/* --- LÍMITE Y SCROLL PARA LA LISTA DE INVENTARIO --- */
-#inventory-list {
-    max-height: 120px; /* Límite de altura. Podés ajustarlo si lo querés más corto o largo */
-    overflow-y: auto;
-    padding-right: 8px; /* Espacio para que el scroll no pise los botones [X] */
-    margin-bottom: 10px;
-}
-
-/* Diseño de la barra de scroll (Tema Tech) */
-#inventory-list::-webkit-scrollbar {
-    width: 6px;
-}
-#inventory-list::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 3px;
-}
-#inventory-list::-webkit-scrollbar-thumb {
-    background: var(--border-primary);
-    border-radius: 3px;
-}
-#inventory-list::-webkit-scrollbar-thumb:hover {
-    background: var(--border-secondary);
-}
 
 /* --- RESPONSIVIDAD --- */
 @media (max-width: 1100px) {
-    .top-boards-container {
-        grid-template-columns: 1fr !important; 
-    }
+    .top-boards-container { grid-template-columns: 1fr !important; }
     #main-card { grid-column: 1; grid-row: auto; justify-self: center; }
     #inventory-card { grid-column: 1; grid-row: auto; width: 100% !important; max-width: 650px; margin: 0 auto; }
     
     .top-boards-container #compcon-card {
-        grid-column: 1;
-        grid-row: auto;
-        margin: 0 auto;
-        width: 100% !important;
+        grid-column: 1; grid-row: auto; margin: 0 auto; width: 100% !important;
     }
     
     #compcon-card.shape-square { max-width: 850px; }
@@ -394,6 +403,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     .header { flex-direction: column; align-items: stretch; gap: 10px; margin-top: 25px; }
     .header-col-left { width: 100%; }
     .header-name, .header-class { font-size: 1rem; }
+    .header-col-right { align-items: flex-start; }
+    .header-col-avatar { width: 60px; height: 60px; align-self: flex-end; margin-top: -70px; }
     #lock-icon-container { align-self: flex-end; }
     .row { flex-direction: column; align-items: flex-start; padding: 10px 8px; gap: 8px; }
     .label-container { width: 100%; justify-content: space-between; }

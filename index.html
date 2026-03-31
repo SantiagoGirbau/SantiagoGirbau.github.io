@@ -103,6 +103,12 @@
                             </svg>
                         </button>
                     </section>
+
+                    <section class="header-col-avatar" id="avatar-container" title="Subir Foto del Piloto / Mech">
+                        <span class="avatar-placeholder" id="avatar-placeholder">+</span>
+                    </section>
+                    <input type="file" id="avatar-upload" accept="image/*" style="display:none;">
+
                 </header>
 
                 <section id="stats-container">
@@ -140,7 +146,10 @@
                         </section>
 
                         <section class="settings-section">
-                            <h4>EQUIPMENT_//_CARGO</h4>
+                            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <h4 style="margin: 0;">EQUIPMENT_//_CARGO</h4>
+                                <button id="global-expand-inv-btn" class="inv-expand-btn" style="padding: 2px 8px; width:auto; height: 26px;" title="Ver Manifiesto Detallado">⛶</button>
+                            </header>
                             <section id="inventory-list">
                             </section>
                             <button id="add-item-btn" class="mgr-btn"
@@ -184,6 +193,20 @@
             </section>
         </article>
     </main>
+
+    <aside id="expanded-inv-modal" class="modal-overlay">
+        <section class="modal-box" style="max-width: 800px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; padding: 25px;">
+            <header class="settings-header" style="margin-bottom: 10px;">
+                <h3>SYSTEM//CARGO_MANIFEST</h3>
+                <button id="close-expanded-inv" class="mgr-btn exit">X</button>
+            </header>
+            
+            <section id="expanded-inv-list" style="overflow-y: auto; flex: 1; padding-right: 8px;">
+                </section>
+            
+            <button id="add-exp-item-btn" class="mgr-btn" style="margin-top: 15px;">+ ADD_ITEM</button>
+        </section>
+    </aside>
 
     <aside id="reset-modal" class="modal-overlay">
         <section class="modal-box">
