@@ -151,10 +151,27 @@ const pilotNameInput = document.getElementById('pilot-name');
 const mechClassInput = document.getElementById('mech-class');
 
 // Avatar Vars
+// Avatar Vars
 const avatarContainer = document.getElementById('avatar-container');
 const avatarUpload = document.getElementById('avatar-upload');
 const avatarPlaceholder = document.getElementById('avatar-placeholder');
+const avatarDropdown = document.getElementById('avatar-dropdown'); // NUEVA VARIABLE
+const avatarToggleBtn = document.getElementById('avatar-toggle-btn'); // NUEVA VARIABLE
 
+// --- LÓGICA DEL BOTÓN DE AVATAR (MÓVILES) ---
+avatarToggleBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // Evita que se cierre al instante
+    avatarDropdown.classList.toggle('active-dropdown');
+});
+
+// Cerrar si tocas fuera del avatar en celular
+document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 600 && avatarDropdown.classList.contains('active-dropdown')) {
+        if (!avatarDropdown.contains(e.target) && e.target !== avatarToggleBtn) {
+            avatarDropdown.classList.remove('active-dropdown');
+        }
+    }
+});
 const allGritInputs = document.querySelectorAll('.grit-input');
 const allGritLabels = document.querySelectorAll('.grit-label');
 const levelInput = document.getElementById('level-value');

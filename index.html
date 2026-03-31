@@ -95,18 +95,26 @@
                     <section class="header-col-right">
                         <input type="text" id="mech-class" class="header-class" placeholder="FRAME">
 
-                        <button id="lock-icon-container" title="Bloquear Identificación">
-                            <svg id="lock-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                            </svg>
-                        </button>
+                        <section style="display: flex; gap: 10px; align-items: center; align-self: flex-end;">
+                            <button id="lock-icon-container" title="Bloquear Identificación">
+                                <svg id="lock-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                </svg>
+                            </button>
+                            
+                            <button id="avatar-toggle-btn" class="mgr-btn" title="Ver Avatar" style="width: 28px; height: 28px; padding: 4px; display: none; align-items: center; justify-content: center; background: transparent; border: 1px solid var(--text-muted); border-radius: 2px;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            </button>
+                        </section>
                     </section>
 
-                    <section class="header-col-avatar" id="avatar-container" title="Subir Foto del Piloto / Mech">
-                        <span class="avatar-placeholder" id="avatar-placeholder">+</span>
-                    </section>
+                    <aside id="avatar-dropdown" class="avatar-wrapper">
+                        <section class="header-col-avatar" id="avatar-container" title="Subir Foto del Piloto / Mech">
+                            <span class="avatar-placeholder" id="avatar-placeholder">+</span>
+                        </section>
+                    </aside>
                     <input type="file" id="avatar-upload" accept="image/*" style="display:none;">
 
                 </header>
