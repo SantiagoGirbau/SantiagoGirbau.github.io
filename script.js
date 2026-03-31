@@ -5,10 +5,10 @@ const stats = [
     { id: 'mechanics', name: 'Mechanics', color: '#00ffff', type: 'stat' },
     { id: 'tech', name: 'Tech', color: '#00ff37', type: 'stat' },
     { id: 'meds', name: 'Meds', color: '#ff2a2a', type: 'stat' },
-    { id: 'spotting', name: 'Spotting', color: '#00ff7f', type: 'stat' },
+    { id: 'spotting', name: 'Spotting', color: '#0004ff', type: 'stat' },
     { id: 'charisma', name: 'Charisma', color: '#ff00ff', type: 'stat' },
     { id: 'paracausal', name: 'Paracausal', color: '#ff00aa', type: 'stat' },
-    { id: 'miscellaneous', name: 'Miscellaneous', color: '#967bb6', type: 'stat' }
+    { id: 'misc', name: 'Misc', color: '#967bb6', type: 'stat' }
 ];
 
 const container = document.getElementById('stats-container');
@@ -250,7 +250,7 @@ function loadCompConIframe() {
 }
 
 compconToggle.addEventListener('click', () => {
-    loadCompConIframe();
+loadCompConIframe();
     compconBody.classList.toggle('collapsed');
     compconToggle.classList.toggle('collapsed-header');
     compconSettingsMenu.classList.add('hidden'); 
