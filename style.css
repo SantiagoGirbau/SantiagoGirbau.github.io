@@ -16,7 +16,7 @@
 
 body {
     font-family: var(--font-main);
-    background-color: var(--bg-page);
+    background-color: var(--bg-page); 
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -27,7 +27,7 @@ body {
     min-height: 100vh;
     padding: 20px;
     margin: 0;
-    transition: background-image 0.5s ease;
+    transition: background-image 0.5s ease, background-color 0.5s ease;
     user-select: none; 
     -webkit-user-select: none;
 }
@@ -46,18 +46,18 @@ figure { margin: 0; padding: 0; }
     transition: max-width 0.4s ease;
 }
 
-/* Bloque Superior */
+/* Bloque Superior - ENSANCHADO A 550px */
 .top-boards-container {
     display: grid;
-    grid-template-columns: 1fr 450px; 
+    grid-template-columns: 1fr 550px; 
     gap: 20px;
     width: 100%;
     transition: grid-template-columns 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.app-layout-stats-inv .top-boards-container { grid-template-columns: 1fr 450px; }
+.app-layout-stats-inv .top-boards-container { grid-template-columns: 1fr 550px; }
 .app-layout-full-moved-square .top-boards-container { grid-template-columns: 1fr 850px; }
-.app-layout-full-moved-vertical .top-boards-container { grid-template-columns: 1fr 450px; }
+.app-layout-full-moved-vertical .top-boards-container { grid-template-columns: 1fr 550px; }
 
 .card {
     background-color: var(--card-bg);
@@ -146,7 +146,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 .header-col-right { display: flex; flex-direction: column; flex: 1; gap: 10px; align-items: flex-end; }
 
 .avatar-wrapper {
-    /* Contenedor base para pantallas grandes */
     position: static;
     display: block;
 }
@@ -265,15 +264,16 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 }
 .lancer-textarea:focus { border-color: var(--border-primary); }
 
-/* --- INVENTARIO COMPACTO Y EXPANDIDO --- */
-.inventory-item { display: flex; gap: 10px; margin-bottom: 8px; }
+/* --- INVENTARIO COMPACTO Y EXPANDIDO CON CANTIDADES --- */
+.inventory-item { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+
 .expanded-inv-item {
     background: rgba(0, 0, 0, 0.4);
     border: 1px solid var(--border-primary);
     padding: 15px; margin-bottom: 10px;
     display: flex; flex-direction: column; gap: 10px;
 }
-.exp-inv-header { display: flex; gap: 10px; align-items: center; }
+.exp-inv-header { display: flex; gap: 8px; align-items: center; }
 .exp-inv-desc {
     transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
     overflow: hidden; opacity: 1; min-height: 100px;
@@ -283,25 +283,50 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 }
 
 .inv-input {
-    flex: 1; background: rgba(0,0,0,0.5); border: 1px solid var(--text-muted);
-    color: var(--text-main); font-family: var(--font-main); padding: 8px;
-    outline: none; transition: border-color 0.3s;
+    background: rgba(0,0,0,0.5); border: 1px solid var(--text-muted);
+    color: var(--text-main); font-family: var(--font-main);
+    outline: none; transition: border-color 0.3s; box-sizing: border-box;
 }
 .inv-input:focus { border-color: var(--border-primary); }
 
+/* Modificadores anti-aplastamiento */
+.inv-input-name { flex: 2; min-width: 80px; padding: 8px; }
+.inv-input-qty { width: 50px; text-align: center; padding: 8px 4px; }
+.inv-input-price { width: 65px; text-align: center; padding: 8px 4px; }
+
+/* Caja de Precio Total Fix */
+.inv-total-price {
+    width: 75px; 
+    min-width: 75px; 
+    padding: 8px 4px;
+    text-align: center;
+    background: rgba(var(--theme-rgb), 0.15);
+    border: 1px solid var(--border-primary);
+    color: var(--border-primary);
+    font-weight: bold;
+    font-family: var(--font-main);
+    font-size: 0.9rem;
+    white-space: nowrap; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    transition: all 0.3s;
+}
+
 .inv-expand-btn, .inv-del-btn {
-    width: 35px; background: transparent; border: 1px solid var(--text-muted);
+    width: 35px; height: 35px; background: transparent; border: 1px solid var(--text-muted);
     color: var(--text-main); font-family: var(--font-main); font-weight: bold;
-    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .inv-expand-btn:hover { border-color: var(--border-primary); color: var(--border-primary); }
 .inv-del-btn { border-color: var(--border-secondary); color: var(--border-secondary); }
 .inv-del-btn:hover { background: rgba(255, 69, 0, 0.2); }
 
 #inventory-list, #expanded-inv-list {
-    overflow-y: auto; padding-right: 8px;
+    overflow-y: auto; padding-right: 8px; overflow-x: hidden;
 }
-#inventory-list { max-height: 150px; margin-bottom: 10px; }
+#inventory-list { max-height: 250px; margin-bottom: 10px; }
 
 /* Scrollbars */
 #inventory-list::-webkit-scrollbar, #expanded-inv-list::-webkit-scrollbar, #settings-panel::-webkit-scrollbar { width: 6px; }
@@ -351,7 +376,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 
 #compcon-card.shape-horizontal { max-width: 100%; }
 #compcon-card.shape-square { max-width: 850px; }
-#compcon-card.shape-vertical { max-width: 450px; }
+#compcon-card.shape-vertical { max-width: 550px; } /* ENSANCHADO A 550px */
 
 .top-boards-container #compcon-card {
     grid-column: 2; 
@@ -391,7 +416,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
 
 
 /* --- RESPONSIVIDAD --- */
-@media (max-width: 1100px) {
+@media (max-width: 1250px) { /* Ajustado por el ensanche a 550px */
     .top-boards-container { grid-template-columns: 1fr !important; }
     #main-card { grid-column: 1; grid-row: auto; justify-self: center; }
     #inventory-card { grid-column: 1; grid-row: auto; width: 100% !important; max-width: 650px; margin: 0 auto; }
@@ -401,7 +426,13 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     }
     
     #compcon-card.shape-square { max-width: 850px; }
-    #compcon-card.shape-vertical { max-width: 450px; }
+    #compcon-card.shape-vertical { max-width: 550px; }
+}
+
+@media (max-width: 768px) {
+    .inventory-item, .exp-inv-header { flex-wrap: wrap; }
+    .inv-input-name { width: 100%; flex: none; }
+    .inv-input-qty, .inv-input-price, .inv-total-price { flex: 1; }
 }
 
 @media (max-width: 600px) {
@@ -412,13 +443,11 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
     .header-name, .header-class { font-size: 1rem; }
     .header-col-right { align-items: flex-start; }
     
-    /* Mostrar el botón en celulares */
     #avatar-toggle-btn { display: flex !important; }
     
-    /* Convertir el wrapper en un menú flotante */
     .avatar-wrapper {
         position: absolute;
-        bottom: -95px; /* Aparece debajo de la cabecera */
+        bottom: -95px; 
         right: 0;
         background: rgba(5, 5, 9, 0.98);
         border: 1px solid var(--border-primary);
@@ -427,7 +456,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
         z-index: 50;
         box-shadow: 0 5px 15px rgba(0,255,255,0.1);
         
-        /* Animación oculta por defecto */
         opacity: 0;
         visibility: hidden;
         transform: translateY(-10px);
@@ -435,7 +463,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444 !importa
         transition: all 0.2s ease;
     }
     
-    /* Clase activa para mostrarlo en celulares */
     .avatar-wrapper.active-dropdown {
         opacity: 1;
         visibility: visible;

@@ -151,20 +151,18 @@ const pilotNameInput = document.getElementById('pilot-name');
 const mechClassInput = document.getElementById('mech-class');
 
 // Avatar Vars
-// Avatar Vars
 const avatarContainer = document.getElementById('avatar-container');
 const avatarUpload = document.getElementById('avatar-upload');
 const avatarPlaceholder = document.getElementById('avatar-placeholder');
-const avatarDropdown = document.getElementById('avatar-dropdown'); // NUEVA VARIABLE
-const avatarToggleBtn = document.getElementById('avatar-toggle-btn'); // NUEVA VARIABLE
+const avatarDropdown = document.getElementById('avatar-dropdown'); 
+const avatarToggleBtn = document.getElementById('avatar-toggle-btn');
 
 // --- LÓGICA DEL BOTÓN DE AVATAR (MÓVILES) ---
 avatarToggleBtn.addEventListener('click', (e) => {
-    e.stopPropagation(); // Evita que se cierre al instante
+    e.stopPropagation(); 
     avatarDropdown.classList.toggle('active-dropdown');
 });
 
-// Cerrar si tocas fuera del avatar en celular
 document.addEventListener('click', (e) => {
     if (window.innerWidth <= 600 && avatarDropdown.classList.contains('active-dropdown')) {
         if (!avatarDropdown.contains(e.target) && e.target !== avatarToggleBtn) {
@@ -172,6 +170,7 @@ document.addEventListener('click', (e) => {
         }
     }
 });
+
 const allGritInputs = document.querySelectorAll('.grit-input');
 const allGritLabels = document.querySelectorAll('.grit-label');
 const levelInput = document.getElementById('level-value');
@@ -186,7 +185,7 @@ const unlockPipsBtn = document.getElementById('unlock-pips-btn');
 const restBtn = document.getElementById('rest-btn');
 
 const inventoryCard = document.getElementById('inventory-card');
-const inventoryToggle = document.getElementById('inventory-toggle');
+const inventoryToggle = document.getElementById('inventory-toggle'); 
 const inventoryBody = document.getElementById('inventory-body');
 const addItemBtn = document.getElementById('add-item-btn');
 const inventoryList = document.getElementById('inventory-list');
@@ -238,22 +237,10 @@ avatarUpload.addEventListener('change', function(e) {
 });
 
 
-// --- LÓGICA DE APERTURA DE TABLEROS Y FORMAS ---
-
-inventoryCard.addEventListener('click', () => {
-    if (window.innerWidth >= 1100 && inventoryCard.classList.contains('collapsed-card')) {
-        inventoryCard.classList.remove('collapsed-card');
-        saveBoardState();
-    }
-});
+// --- LÓGICA DE APERTURA DE TABLEROS Y FORMAS (CORREGIDA) ---
 inventoryToggle.addEventListener('click', (e) => {
-    if (window.innerWidth >= 1100) {
-        if (inventoryCard.classList.contains('collapsed-card')) { inventoryCard.classList.remove('collapsed-card'); }
-        else { inventoryCard.classList.add('collapsed-card'); }
-        saveBoardState();
-        e.stopPropagation();
-    }
-    else {
+    // Si el clic NO fue en un botón/input (como el expandir general), entonces minimiza/maximiza
+    if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && !e.target.closest('button')) {
         inventoryBody.classList.toggle('collapsed');
         inventoryToggle.classList.toggle('collapsed-header');
         saveBoardState();
@@ -292,7 +279,9 @@ function loadCompConIframe() {
     }
 }
 
-compconToggle.addEventListener('click', () => {
+compconToggle.addEventListener('click', (e) => {
+    if (e.target.closest('#compcon-settings-btn')) return;
+    
     loadCompConIframe();
     compconBody.classList.toggle('collapsed');
     compconToggle.classList.toggle('collapsed-header');
@@ -301,8 +290,7 @@ compconToggle.addEventListener('click', () => {
     saveBoardState();
 });
 
-// --- LÓGICA DEL INVENTARIO EXPANDIDO ---
-
+// --- LÓGICA DEL INVENTARIO EXPANDIDO CON CANTIDADES Y PRECIOS ---
 globalExpandInvBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     expandedInvModal.classList.add('active');
@@ -318,8 +306,19 @@ addExpItemBtn.addEventListener('click', () => {
     setTimeout(() => expandedInvList.scrollTop = expandedInvList.scrollHeight, 50);
 });
 
-// Función creadora dual (crea ítem en tarjeta y en modal a la vez)
-function createInventoryItem(id = Date.now() + Math.random(), nameValue = "", descValue = "") {
+function updateItemTotalPrice(qtyInput, priceInput, totalDiv) {
+    const qty = parseFloat(qtyInput.value) || 0;
+    const price = parseFloat(priceInput.value) || 0;
+    const total = qty * price;
+    
+    if (total === 0) {
+        totalDiv.textContent = '0 CR';
+    } else {
+        totalDiv.textContent = (total % 1 === 0 ? total : total.toFixed(2)) + ' CR';
+    }
+}
+
+function createInventoryItem(id = Date.now() + Math.random(), nameValue = "", qtyValue = "", priceValue = "", descValue = "") {
     
     // 1. CREAR VERSIÓN COMPACTA
     const compItem = document.createElement('article');
@@ -328,9 +327,28 @@ function createInventoryItem(id = Date.now() + Math.random(), nameValue = "", de
 
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
-    nameInput.className = 'inv-input';
+    nameInput.className = 'inv-input inv-input-name';
     nameInput.value = nameValue;
-    nameInput.placeholder = "ITEM // QTY";
+    nameInput.placeholder = "ITEM";
+
+    const qtyInput = document.createElement('input');
+    qtyInput.type = 'number';
+    qtyInput.className = 'inv-input inv-input-qty';
+    qtyInput.value = qtyValue;
+    qtyInput.min = "0";
+    qtyInput.placeholder = "QTY";
+
+    const priceInput = document.createElement('input');
+    priceInput.type = 'number';
+    priceInput.className = 'inv-input inv-input-price';
+    priceInput.value = priceValue;
+    priceInput.min = "0";
+    priceInput.step = "any"; 
+    priceInput.placeholder = "PRICE";
+    
+    const totalPriceDiv = document.createElement('div');
+    totalPriceDiv.className = 'inv-total-price';
+    totalPriceDiv.textContent = "0 CR";
 
     const expandBtn = document.createElement('button');
     expandBtn.className = 'inv-expand-btn';
@@ -342,6 +360,9 @@ function createInventoryItem(id = Date.now() + Math.random(), nameValue = "", de
     delBtn.textContent = 'X';
 
     compItem.appendChild(nameInput);
+    compItem.appendChild(qtyInput);
+    compItem.appendChild(priceInput);
+    compItem.appendChild(totalPriceDiv);
     compItem.appendChild(expandBtn);
     compItem.appendChild(delBtn);
     inventoryList.appendChild(compItem);
@@ -356,9 +377,28 @@ function createInventoryItem(id = Date.now() + Math.random(), nameValue = "", de
 
     const expNameInput = document.createElement('input');
     expNameInput.type = 'text';
-    expNameInput.className = 'inv-input';
+    expNameInput.className = 'inv-input inv-input-name';
     expNameInput.value = nameValue;
-    expNameInput.placeholder = "Nombre del Item / Cantidad";
+    expNameInput.placeholder = "Nombre del Item";
+    
+    const expQtyInput = document.createElement('input');
+    expQtyInput.type = 'number';
+    expQtyInput.className = 'inv-input inv-input-qty';
+    expQtyInput.value = qtyValue;
+    expQtyInput.min = "0";
+    expQtyInput.placeholder = "QTY";
+
+    const expPriceInput = document.createElement('input');
+    expPriceInput.type = 'number';
+    expPriceInput.className = 'inv-input inv-input-price';
+    expPriceInput.value = priceValue;
+    expPriceInput.min = "0";
+    expPriceInput.step = "any";
+    expPriceInput.placeholder = "PRICE";
+    
+    const expTotalPriceDiv = document.createElement('div');
+    expTotalPriceDiv.className = 'inv-total-price';
+    expTotalPriceDiv.textContent = "0 CR";
     
     const toggleDescBtn = document.createElement('button');
     toggleDescBtn.className = 'inv-expand-btn';
@@ -370,6 +410,9 @@ function createInventoryItem(id = Date.now() + Math.random(), nameValue = "", de
     expDelBtn.textContent = 'X';
 
     expHeader.appendChild(expNameInput);
+    expHeader.appendChild(expQtyInput);
+    expHeader.appendChild(expPriceInput);
+    expHeader.appendChild(expTotalPriceDiv);
     expHeader.appendChild(toggleDescBtn);
     expHeader.appendChild(expDelBtn);
 
@@ -382,10 +425,37 @@ function createInventoryItem(id = Date.now() + Math.random(), nameValue = "", de
     expItem.appendChild(descArea);
     expandedInvList.appendChild(expItem);
 
-    // 3. EVENTOS DE SINCRONIZACIÓN
-    nameInput.addEventListener('input', (e) => { expNameInput.value = e.target.value; saveBoardState(); });
-    expNameInput.addEventListener('input', (e) => { nameInput.value = e.target.value; saveBoardState(); });
+    // 3. EVENTOS DE SINCRONIZACIÓN Y CÁLCULO
+    const syncItem = () => {
+        expNameInput.value = nameInput.value;
+        expQtyInput.value = qtyInput.value;
+        expPriceInput.value = priceInput.value;
+        updateItemTotalPrice(qtyInput, priceInput, totalPriceDiv);
+        updateItemTotalPrice(expQtyInput, expPriceInput, expTotalPriceDiv);
+        saveBoardState();
+    };
+
+    const syncExpItem = () => {
+        nameInput.value = expNameInput.value;
+        qtyInput.value = expQtyInput.value;
+        priceInput.value = expPriceInput.value;
+        updateItemTotalPrice(qtyInput, priceInput, totalPriceDiv);
+        updateItemTotalPrice(expQtyInput, expPriceInput, expTotalPriceDiv);
+        saveBoardState();
+    };
+
+    nameInput.addEventListener('input', syncItem);
+    qtyInput.addEventListener('input', syncItem);
+    priceInput.addEventListener('input', syncItem);
+
+    expNameInput.addEventListener('input', syncExpItem);
+    expQtyInput.addEventListener('input', syncExpItem);
+    expPriceInput.addEventListener('input', syncExpItem);
+    
     descArea.addEventListener('input', saveBoardState);
+
+    updateItemTotalPrice(qtyInput, priceInput, totalPriceDiv);
+    updateItemTotalPrice(expQtyInput, expPriceInput, expTotalPriceDiv);
 
     // 4. EVENTOS DE BORRADO (Borra en ambas vistas a la vez)
     const deleteAction = () => { compItem.remove(); expItem.remove(); saveBoardState(); };
@@ -394,8 +464,8 @@ function createInventoryItem(id = Date.now() + Math.random(), nameValue = "", de
 
     // 5. EVENTO ABRIR DESDE COMPACTA
     expandBtn.addEventListener('click', () => {
-        expandedInvModal.classList.add('active'); // Abre el modal grande
-        descArea.classList.remove('collapsed');   // Despliega la descripción de ESTE ítem
+        expandedInvModal.classList.add('active'); 
+        descArea.classList.remove('collapsed');   
         toggleDescBtn.innerHTML = '▲';
         setTimeout(() => expItem.scrollIntoView({ behavior: 'smooth', block: 'center' }), 10);
     });
@@ -507,6 +577,11 @@ restBtn.addEventListener('click', () => {
     saveBoardState();
 });
 
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '0, 255, 255';
+}
+
 const themeSelector = document.getElementById('theme-selector');
 stats.forEach(attr => {
     if (attr.type === 'stat') {
@@ -520,6 +595,12 @@ stats.forEach(attr => {
 themeSelector.addEventListener('change', (e) => {
     const color = e.target.value;
     document.documentElement.style.setProperty('--border-primary', color);
+    document.documentElement.style.setProperty('--theme-rgb', hexToRgb(color));
+    
+    if(!localStorage.getItem('activePageBG')) {
+        document.body.style.backgroundImage = `linear-gradient(rgba(${hexToRgb(color)}, 0.05), rgba(${hexToRgb(color)}, 0.05))`;
+    }
+    
     saveBoardState();
 });
 
@@ -529,14 +610,15 @@ function saveBoardState() {
     if (compconCard.classList.contains('shape-square')) activeShape = 'square';
     if (compconCard.classList.contains('shape-vertical')) activeShape = 'vertical';
     
-    // Leemos siempre desde la vista expandida (es nuestra fuente de verdad)
     const savedInventory = Array.from(document.querySelectorAll('.expanded-inv-item')).map(item => {
         return {
             id: item.dataset.id,
-            name: item.querySelector('.inv-input').value,
+            name: item.querySelector('.inv-input-name').value,
+            qty: item.querySelector('.inv-input-qty').value,
+            price: item.querySelector('.inv-input-price').value,
             desc: item.querySelector('.exp-inv-desc').value
         };
-    }).filter(obj => obj.name.trim() !== '' || obj.desc.trim() !== '');
+    }).filter(obj => obj.name.trim() !== '' || obj.desc.trim() !== '' || obj.qty !== '' || obj.price !== '');
 
     const state = {
         pilotName: pilotNameInput.value,
@@ -549,11 +631,11 @@ function saveBoardState() {
         themeColor: document.documentElement.style.getPropertyValue('--border-primary') || '#00ffff',
         notes: pilotNotes.value,
         credits: creditsInput.value,
-        pilotAvatar: avatarContainer.style.backgroundImage, // Guardamos Avatar
+        pilotAvatar: avatarContainer.style.backgroundImage, 
 
         inventory: savedInventory,
 
-        isInventoryOpen: !inventoryCard.classList.contains('collapsed-card') && !inventoryBody.classList.contains('collapsed'),
+        isInventoryOpen: !inventoryBody.classList.contains('collapsed'),
         isCompconOpen: !compconBody.classList.contains('collapsed'),
         compconShape: activeShape, 
 
@@ -569,6 +651,7 @@ function saveBoardState() {
 function loadBoardState() {
     const savedData = localStorage.getItem('lancerBoardState');
     if (!savedData) {
+        document.documentElement.style.setProperty('--theme-rgb', hexToRgb('#00ffff')); 
         createInventoryItem();
         return;
     }
@@ -577,7 +660,14 @@ function loadBoardState() {
 
     if (state.themeColor) {
         document.documentElement.style.setProperty('--border-primary', state.themeColor);
+        document.documentElement.style.setProperty('--theme-rgb', hexToRgb(state.themeColor));
         themeSelector.value = state.themeColor;
+        
+        if(!localStorage.getItem('activePageBG')) {
+            document.body.style.backgroundImage = `linear-gradient(rgba(${hexToRgb(state.themeColor)}, 0.05), rgba(${hexToRgb(state.themeColor)}, 0.05))`;
+        }
+    } else {
+        document.documentElement.style.setProperty('--theme-rgb', hexToRgb('#00ffff'));
     }
 
     pilotNameInput.value = state.pilotName || '';
@@ -593,16 +683,16 @@ function loadBoardState() {
         avatarPlaceholder.style.display = 'none';
     }
 
-    // CARGAR INVENTARIO DUAL
     inventoryList.innerHTML = '';
     expandedInvList.innerHTML = ''; 
     if (state.inventory && state.inventory.length > 0) {
         state.inventory.forEach(val => {
-            // Compatibilidad por si el usuario guardó en el formato antiguo de texto simple
             if (typeof val === 'string') {
-                if (val.trim() !== '') createInventoryItem(Date.now() + Math.random(), val, "");
+                if (val.trim() !== '') createInventoryItem(Date.now() + Math.random(), val, "", "", "");
+            } else if (val.price !== undefined) {
+                 createInventoryItem(val.id, val.name, val.qty, val.price, val.desc);
             } else {
-                createInventoryItem(val.id, val.name, val.desc);
+                createInventoryItem(val.id, val.name, "", "", val.desc);
             }
         });
     } else {
@@ -610,8 +700,8 @@ function loadBoardState() {
     }
 
     if (state.isInventoryOpen === false) {
-        if (window.innerWidth >= 1100) { inventoryCard.classList.add('collapsed-card'); }
-        else { inventoryBody.classList.add('collapsed'); inventoryToggle.classList.add('collapsed-header'); }
+        inventoryBody.classList.add('collapsed'); 
+        inventoryToggle.classList.add('collapsed-header');
     }
 
     if (state.compconShape) {
@@ -740,7 +830,10 @@ function applyImage(target) {
     if (!imageName) return;
     db.transaction([storeName], "readonly").objectStore(storeName).get(imageName).onsuccess = (e) => {
         const cssUrl = `url(${e.target.result.data})`;
-        if (target === 'page') { document.body.style.backgroundImage = cssUrl; localStorage.setItem('activePageBG', imageName); }
+        if (target === 'page') { 
+            document.body.style.backgroundImage = cssUrl; 
+            localStorage.setItem('activePageBG', imageName); 
+        }
         else { document.getElementById('main-card').style.backgroundImage = cssUrl; localStorage.setItem('activeCardBG', imageName); }
     };
 }
@@ -749,7 +842,13 @@ function loadActiveBackgrounds() {
     const activeCardBG = localStorage.getItem('activeCardBG');
     const transaction = db.transaction([storeName], "readonly");
     const store = transaction.objectStore(storeName);
-    if (activePageBG) store.get(activePageBG).onsuccess = (e) => { if (e.target.result) document.body.style.backgroundImage = `url(${e.target.result.data})`; };
+    if (activePageBG) {
+        store.get(activePageBG).onsuccess = (e) => { 
+            if (e.target.result) {
+                document.body.style.backgroundImage = `url(${e.target.result.data})`; 
+            }
+        };
+    }
     if (activeCardBG) store.get(activeCardBG).onsuccess = (e) => { if (e.target.result) document.getElementById('main-card').style.backgroundImage = `url(${e.target.result.data})`; };
 }
 function deleteSelectedImage() {
@@ -758,7 +857,11 @@ function deleteSelectedImage() {
     if (!imageName || !confirm(`¿Eliminar ${imageName}?`)) return;
     db.transaction([storeName], "readwrite").objectStore(storeName).delete(imageName).oncomplete = () => {
         populateImageSelector();
-        if (localStorage.getItem('activePageBG') === imageName) { document.body.style.backgroundImage = ''; localStorage.removeItem('activePageBG'); }
+        if (localStorage.getItem('activePageBG') === imageName) { 
+            localStorage.removeItem('activePageBG'); 
+            const themeColor = document.documentElement.style.getPropertyValue('--border-primary') || '#00ffff';
+            document.body.style.backgroundImage = `linear-gradient(rgba(${hexToRgb(themeColor)}, 0.05), rgba(${hexToRgb(themeColor)}, 0.05))`;
+        }
         if (localStorage.getItem('activeCardBG') === imageName) { document.getElementById('main-card').style.backgroundImage = ''; localStorage.removeItem('activeCardBG'); }
     };
 }
@@ -767,6 +870,8 @@ function resetBackgrounds() {
     document.getElementById('main-card').style.backgroundImage = '';
     localStorage.removeItem('activePageBG');
     localStorage.removeItem('activeCardBG');
+    const themeColor = document.documentElement.style.getPropertyValue('--border-primary') || '#00ffff';
+    document.body.style.backgroundImage = `linear-gradient(rgba(${hexToRgb(themeColor)}, 0.05), rgba(${hexToRgb(themeColor)}, 0.05))`;
 }
 
 // --- LÓGICA DEL BOTÓN FACTORY RESET ---
