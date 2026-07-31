@@ -322,7 +322,7 @@
         <!-- Pantalla de Inicio -->
         <div id="screen-intro">
             <h1 id="intro-text"></h1>
-            <p id="intro-subtitle">Duración estimada 15 minutos, responde como si fueras tu personaje</p>
+            <p id="intro-subtitle">Duración estimada 15 minutos, responde como si fueras tu personaje <br>Se Recomienda el uso de auriculares para una mejor experiencia</p>
             <div class="btn-container center-btn">
                 <button onclick="startSurvey()" id="btn-start" class="hidden">Lo entiendo</button>
             </div>
@@ -350,7 +350,7 @@
 
         <!-- Pantalla Final (Descarga) -->
         <div id="screen-download" class="hidden">
-            <p class="question-text">Tus respuestas han sido <span class="glitch" id="glitch-final" data-text="grabadas">guardadas</span>.</p>
+            <p class="question-text">Tus respuestas han sido <span class="glitch" id="glitch-final" data-text="guardadas">guardadas</span>.</p>
             <div class="btn-container center-btn">
                 <button onclick="downloadTXT()">Descargar Registros</button>
             </div>
@@ -601,8 +601,8 @@
 
                     finalSwapTimeout = setTimeout(() => {
                         if (glitchFinal) {
-                            glitchFinal.innerHTML = "grabadas";
-                            glitchFinal.setAttribute('data-text', "grabadas");
+                            glitchFinal.innerHTML = "guardadas";
+                            glitchFinal.setAttribute('data-text', "guardadas");
                             glitchFinal.style.color = "#fff";
                             glitchFinal.style.textShadow = "none";
                         }
