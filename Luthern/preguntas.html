@@ -350,7 +350,7 @@
 
         <!-- Pantalla Final (Descarga) -->
         <div id="screen-download" class="hidden">
-            <p class="question-text">Tus respuestas han sido <span class="glitch" id="glitch-final" data-text="grabadas">grabadas</span>.</p>
+            <p class="question-text">Tus respuestas han sido <span class="glitch" id="glitch-final" data-text="grabadas">guardadas</span>.</p>
             <div class="btn-container center-btn">
                 <button onclick="downloadTXT()">Descargar Registros</button>
             </div>
@@ -589,7 +589,7 @@
             const glitchFinal = document.getElementById('glitch-final');
             if (!glitchFinal) return;
 
-            const finalWords = ["guardadas", "asimiladas", "borradas", "copiadas", "eliminadas", "destruidas"];
+            const finalWords = ["asimiladas", "borradas", "copiadas", "eliminadas", "destruidas"];
 
             finalSwapInterval = setInterval(() => {
                 if (glitchFinal) {
