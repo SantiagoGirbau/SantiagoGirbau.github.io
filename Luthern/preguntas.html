@@ -65,18 +65,18 @@
             pointer-events: none;
         }
 
-        /* Pantalla roja para la última pregunta */
+        /* Pantalla roja dinámica para la última pregunta */
         #red-screen {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: red;
+            background-color: #ff0000;
             opacity: 0;
             z-index: 2;
             pointer-events: none;
-            transition: opacity 0.5s ease;
+            /* La transición inicial rápida se controlará vía JS */
         }
 
         /* Contenedor principal sin bordes ni fondos */
@@ -92,7 +92,7 @@
         /* Textos brillantes y grandes */
         h1 {
             font-size: 2.2rem;
-            margin-bottom: 20px; /* Reducido para darle espacio al subtítulo */
+            margin-bottom: 20px;
             font-style: italic;
             font-weight: normal;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.4);
@@ -131,7 +131,7 @@
         }
 
         #answer-wrapper.visible {
-            max-height: 500px; /* Aumentado por si escriben mucho texto */
+            max-height: 500px; 
             opacity: 1;
             margin-top: 30px;
         }
@@ -141,7 +141,7 @@
             width: 100%;
             min-height: 40px;
             background: transparent;
-            border: none; /* Borde eliminado para que sea totalmente flotante */
+            border: none;
             color: #fff;
             padding: 10px;
             font-family: inherit;
@@ -153,9 +153,8 @@
             box-sizing: border-box;
             margin-bottom: 40px;
             transition: text-shadow 0.4s;
-            overflow: hidden; /* Oculta la barra de scroll de forma nativa */
+            overflow: hidden; 
             
-            /* Ocultar barra de scroll en distintos navegadores por seguridad */
             -ms-overflow-style: none;  
             scrollbar-width: none;  
         }
@@ -231,7 +230,7 @@
             50% { opacity: 0; }
         }
 
-        /* Efecto Glitch */
+        /* Efecto Glitch General */
         .glitch {
             position: relative;
             display: inline-block;
@@ -241,6 +240,12 @@
             text-align: center;
             animation: glitch-skew 0.3s infinite linear alternate-reverse;
         }
+
+        /* Glitch especial para la pantalla final (más letras) */
+        #glitch-final {
+            width: 10ch; 
+        }
+
         .glitch::before, .glitch::after {
             content: attr(data-text);
             position: absolute;
@@ -248,7 +253,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: var(--bg-color); 
+            background: transparent; 
         }
         .glitch::before {
             left: 3px;
@@ -317,7 +322,7 @@
         <!-- Pantalla de Inicio -->
         <div id="screen-intro">
             <h1 id="intro-text"></h1>
-            <p id="intro-subtitle">Duración estimada 15 minutos, responde como si fueras tu personaje. <br>Se recomienda mantener la música y los sonidos activos.</p>
+            <p id="intro-subtitle">Duración estimada 15 minutos, responde como si fueras tu personaje</p>
             <div class="btn-container center-btn">
                 <button onclick="startSurvey()" id="btn-start" class="hidden">Lo entiendo</button>
             </div>
@@ -328,7 +333,6 @@
             <p id="question-text" class="question-text"></p>
             
             <div id="answer-wrapper">
-                <!-- textarea con auto-expansión vía JS y row=1 para que inicie centrado -->
                 <textarea id="answer-input" placeholder="" oninput="checkInput()" rows="1"></textarea>
                 
                 <div id="nav-buttons" class="btn-container center-btn">
@@ -346,9 +350,9 @@
 
         <!-- Pantalla Final (Descarga) -->
         <div id="screen-download" class="hidden">
-            <p class="question-text">Tus pensamientos han sido grabados.</p>
+            <p class="question-text">Tus respuestas han sido <span class="glitch" id="glitch-final" data-text="grabadas">grabadas</span>.</p>
             <div class="btn-container center-btn">
-                <button onclick="downloadTXT()">Descargar Respuestas</button>
+                <button onclick="downloadTXT()">Descargar Registros</button>
             </div>
         </div>
     </div>
@@ -497,9 +501,13 @@
         let currentIndex = 0;
         let answers = new Array(questions.length).fill("");
         let noClicks = 0;
+        
         let typeInterval;
         let swapInterval;
         let swapTimeout;
+        
+        let finalSwapInterval;
+        let finalSwapTimeout;
 
         const screenIntro = document.getElementById('screen-intro');
         const introSubtitle = document.getElementById('intro-subtitle');
@@ -516,10 +524,10 @@
         const introText = document.getElementById('intro-text');
         const btnStart = document.getElementById('btn-start');
 
-        // Función de auto-expansión del textarea (para que crezca en vez de tener barra de scroll)
+        // Función de auto-expansión del textarea
         function autoResizeTextarea() {
-            answerInput.style.height = 'auto'; // Reiniciamos altura para que calcule bien
-            answerInput.style.height = answerInput.scrollHeight + 'px'; // Expandimos
+            answerInput.style.height = 'auto'; 
+            answerInput.style.height = answerInput.scrollHeight + 'px'; 
         }
 
         // Función de tipeo
@@ -552,6 +560,7 @@
             }, speed);
         }
         
+        // Glitch para la pregunta 12
         function startSubliminalGlitch() {
             const glitchWord = document.getElementById('glitch-word');
             if (!glitchWord) return;
@@ -575,10 +584,35 @@
             }, Math.random() * 1500 + 1000); 
         }
 
+        // Glitch cíclico para la pantalla final
+        function startFinalGlitch() {
+            const glitchFinal = document.getElementById('glitch-final');
+            if (!glitchFinal) return;
+
+            const finalWords = ["guardadas", "asimiladas", "borradas", "copiadas", "eliminadas", "destruidas"];
+
+            finalSwapInterval = setInterval(() => {
+                if (glitchFinal) {
+                    const randomWord = finalWords[Math.floor(Math.random() * finalWords.length)];
+                    glitchFinal.innerHTML = randomWord;
+                    glitchFinal.setAttribute('data-text', randomWord);
+                    glitchFinal.style.color = "#ff3333"; 
+                    glitchFinal.style.textShadow = "0 0 15px red";
+
+                    finalSwapTimeout = setTimeout(() => {
+                        if (glitchFinal) {
+                            glitchFinal.innerHTML = "grabadas";
+                            glitchFinal.setAttribute('data-text', "grabadas");
+                            glitchFinal.style.color = "#fff";
+                            glitchFinal.style.textShadow = "none";
+                        }
+                    }, Math.random() * 150 + 50); // Flash muy rápido
+                }
+            }, Math.random() * 1200 + 600); 
+        }
+
         window.onload = () => {
-            // Nuevo mensaje inicial
             typeWriter("Estamos en Luthern. Te encuentras bajo el efecto de un domo de la verdad.", introText, () => {
-                // Hacemos aparecer el subtítulo suavemente 
                 introSubtitle.classList.add('visible');
                 btnStart.classList.remove('hidden');
             }, 50);
@@ -633,7 +667,6 @@
 
                 answerWrapper.classList.add('visible');
 
-                // Necesitamos un pequeño timeout para que el DOM renderice antes de recalcular la altura
                 setTimeout(() => {
                     if (currentIndex !== questions.length - 1) {
                         autoResizeTextarea();
@@ -648,7 +681,7 @@
         }
 
         function checkInput() {
-            autoResizeTextarea(); // Llamada en oninput para que crezca
+            autoResizeTextarea();
             answers[currentIndex] = answerInput.value;
             btnNext.disabled = answers[currentIndex].trim() === "";
         }
@@ -674,6 +707,8 @@
 
             noClicks++;
             let opacity = Math.min(noClicks * 0.15, 0.85);
+            redScreen.style.backgroundColor = "#ff0000";
+            redScreen.style.transition = "opacity 0.2s ease";
             redScreen.style.opacity = opacity;
             
             document.body.style.transform = `translate(${Math.random()*10 - 5}px, ${Math.random()*10 - 5}px)`;
@@ -694,16 +729,23 @@
                 }
             };
             
+            // 1. Transición rápida (pero visible 0.4s) al rojo absoluto
+            redScreen.style.transition = "opacity 0.4s ease-out, background-color 0.4s ease-out";
+            redScreen.style.backgroundColor = "#ff0000";
             redScreen.style.opacity = 1;
-            redScreen.style.transition = "opacity 0.1s";
             
             setTimeout(() => {
-                redScreen.style.transition = "opacity 4s ease";
-                redScreen.style.opacity = 0;
+                // 2. Se oscurece lentamente tras un par de segundos
+                redScreen.style.transition = "background-color 3s ease-in-out, opacity 3s ease-in-out";
+                redScreen.style.backgroundColor = "#120000"; // Un rojo abisal casi negro
+                redScreen.style.opacity = 0.95; 
                 
                 screenQuestions.classList.add('hidden');
                 screenDownload.classList.remove('hidden');
-            }, 2000);
+                
+                // 3. Activar el glitch de la pantalla final
+                startFinalGlitch();
+            }, 2500); // 2.5 segundos de rojo absoluto
         }
 
         function downloadTXT() {
