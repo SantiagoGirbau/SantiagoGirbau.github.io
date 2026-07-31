@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domo de la Verdad</title>
+    <style>
+        :root {
+            --bg-color: #020202;
+            --text-color: #ffffff;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Controles de Audio Superiores */
+        #audio-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            gap: 15px;
+        }
+
+        #audio-controls button {
+            background-color: transparent;
+            color: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: none;
+            max-width: none;
+            letter-spacing: 1px;
+        }
+
+        #audio-controls button:hover {
+            color: #fff;
+            border-color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            transform: scale(1.05);
+        }
+
+        /* Canvas para las partículas */
+        #particle-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Pantalla roja para la última pregunta */
+        #red-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: red;
+            opacity: 0;
+            z-index: 2;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        /* Contenedor principal sin bordes ni fondos */
+        #app-container {
+            position: relative;
+            z-index: 10;
+            width: 90%;
+            max-width: 900px;
+            text-align: center;
+            transition: opacity 0.5s ease;
+        }
+
+        /* Textos brillantes y grandes */
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            font-style: italic;
+            font-weight: normal;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.4);
+        }
+
+        p.question-text {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            min-height: 4.5rem;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 1), 0 0 30px rgba(255, 255, 255, 0.6);
+            line-height: 1.3;
+        }
+
+        /* Envoltorio para animar la aparición suave (deslizamiento) */
+        #answer-wrapper {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.8s ease, margin-top 0.8s ease;
+            margin-top: 0;
+            width: 100%;
+        }
+
+        #answer-wrapper.visible {
+            max-height: 350px;
+            opacity: 1;
+            margin-top: 30px;
+        }
+
+        /* Área de respuesta flotante */
+        textarea {
+            width: 100%;
+            height: 150px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 15px;
+            font-family: inherit;
+            font-size: 1.8rem;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            resize: none;
+            outline: none;
+            box-sizing: border-box;
+            margin-bottom: 40px;
+            transition: border-color 0.4s, text-shadow 0.4s;
+        }
+
+        textarea:focus {
+            border-bottom: 2px solid rgba(255, 255, 255, 0.8);
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+        }
+        
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+            text-shadow: none;
+        }
+
+        /* Botones minimalistas */
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .center-btn {
+            justify-content: center;
+        }
+
+        button {
+            background-color: transparent;
+            color: var(--text-color);
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            flex: 1;
+            max-width: 200px;
+        }
+
+        button:hover:not(:disabled) {
+            text-shadow: 0 0 15px rgba(255, 255, 255, 1);
+            transform: scale(1.05);
+        }
+
+        button:disabled {
+            opacity: 0.1;
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Cursor parpadeante */
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 2.5rem;
+            background-color: white;
+            vertical-align: middle;
+            animation: blink 1s step-end infinite;
+            margin-left: 5px;
+            box-shadow: 0 0 10px white;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Efecto Glitch */
+        .glitch {
+            position: relative;
+            display: inline-block;
+            color: #fff;
+            font-weight: bold;
+            width: 9ch; 
+            text-align: center;
+            animation: glitch-skew 0.3s infinite linear alternate-reverse;
+        }
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color); 
+        }
+        .glitch::before {
+            left: 3px;
+            text-shadow: -3px 0 #ff00c1, 0 0 10px #ff00c1;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 2s infinite linear alternate-reverse;
+        }
+        .glitch::after {
+            left: -3px;
+            text-shadow: -3px 0 #00fff9, 0 0 10px #00fff9;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 2.5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% { clip: rect(15px, 9999px, 92px, 0); transform: skew(0.5deg) translate(-2px); }
+            5% { clip: rect(81px, 9999px, 16px, 0); transform: skew(1.5deg) translate(2px); }
+            10% { clip: rect(37px, 9999px, 104px, 0); transform: skew(-1.5deg) translate(-1px); }
+            15% { clip: rect(93px, 9999px, 28px, 0); transform: skew(2deg) translate(1px); }
+            20% { clip: rect(51px, 9999px, 73px, 0); transform: skew(-2deg) translate(-3px); }
+            25% { clip: rect(104px, 9999px, 39px, 0); transform: skew(1.5deg) translate(3px); }
+            30% { clip: rect(14px, 9999px, 86px, 0); transform: skew(-0.5deg) translate(-1px); }
+            35% { clip: rect(66px, 9999px, 52px, 0); transform: skew(3deg) translate(2px); }
+            40% { clip: rect(110px, 9999px, 14px, 0); transform: skew(-2deg) translate(-2px); }
+            45% { clip: rect(27px, 9999px, 102px, 0); transform: skew(1deg) translate(1px); }
+            50% { clip: rect(78px, 9999px, 39px, 0); transform: skew(-1.5deg) translate(-1px); }
+            100% { clip: rect(12px, 9999px, 98px, 0); transform: skew(0.5deg) translate(0px); }
+        }
+        @keyframes glitch-anim2 {
+            0% { clip: rect(75px, 9999px, 115px, 0); transform: skew(-1deg) translate(2px); }
+            5% { clip: rect(26px, 9999px, 52px, 0); transform: skew(2deg) translate(-2px); }
+            10% { clip: rect(102px, 9999px, 14px, 0); transform: skew(-2deg) translate(1px); }
+            15% { clip: rect(39px, 9999px, 90px, 0); transform: skew(1.5deg) translate(-1px); }
+            20% { clip: rect(90px, 9999px, 64px, 0); transform: skew(-3deg) translate(3px); }
+            25% { clip: rect(14px, 9999px, 112px, 0); transform: skew(2deg) translate(-3px); }
+            30% { clip: rect(64px, 9999px, 26px, 0); transform: skew(-1.5deg) translate(1px); }
+            35% { clip: rect(112px, 9999px, 77px, 0); transform: skew(1deg) translate(-2px); }
+            40% { clip: rect(52px, 9999px, 102px, 0); transform: skew(-2.5deg) translate(2px); }
+            45% { clip: rect(102px, 9999px, 39px, 0); transform: skew(1.5deg) translate(-1px); }
+            50% { clip: rect(26px, 9999px, 14px, 0); transform: skew(-1deg) translate(1px); }
+            100% { clip: rect(75px, 9999px, 115px, 0); transform: skew(1deg) translate(0px); }
+        }
+        @keyframes glitch-skew {
+            0% { transform: skew(0deg); }
+            10% { transform: skew(-4deg); }
+            20% { transform: skew(4deg); }
+            30% { transform: skew(-2deg); }
+            40% { transform: skew(3deg); }
+            50% { transform: skew(0deg); }
+            100% { transform: skew(0deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="particle-canvas"></canvas>
+    <div id="red-screen"></div>
+
+    <!-- Controles de mute -->
+    <div id="audio-controls">
+        <button id="btn-toggle-music" onclick="toggleMusic()">MÚSICA: ON</button>
+        <button id="btn-toggle-sfx" onclick="toggleSFX()">SFX: ON</button>
+    </div>
+
+    <div id="app-container">
+        <!-- Pantalla de Inicio -->
+        <div id="screen-intro">
+            <h1 id="intro-text"></h1>
+            <div class="btn-container center-btn">
+                <button onclick="startSurvey()" id="btn-start" class="hidden">Lo entiendo</button>
+            </div>
+        </div>
+
+        <!-- Pantalla de Preguntas -->
+        <div id="screen-questions" class="hidden">
+            <p id="question-text" class="question-text"></p>
+            
+            <div id="answer-wrapper">
+                <textarea id="answer-input" placeholder="" oninput="checkInput()"></textarea>
+                
+                <div id="nav-buttons" class="btn-container center-btn">
+                    <button id="btn-prev" onclick="prevQuestion()" class="hidden">Anterior</button>
+                    <button id="btn-next" onclick="nextQuestion()" disabled>Siguiente</button>
+                </div>
+
+                <!-- Botones especiales para la última pregunta -->
+                <div id="final-buttons" class="btn-container center-btn hidden">
+                    <button onclick="handleFinalYes()">Sí</button>
+                    <button onclick="handleFinalNo()">No</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla Final (Descarga) -->
+        <div id="screen-download" class="hidden">
+            <p class="question-text">Tus pensamientos han sido grabados.</p>
+            <div class="btn-container center-btn">
+                <button onclick="downloadTXT()">Descargar Respuestas</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- SISTEMA DE AUDIO AVANZADO ---
+        let isMusicMuted = false;
+        let isSfxMuted = false;
+        let isLastQuestionActive = false;
+        let surveyStarted = false;
+
+        const audioAmbiance = new Audio('ambiance.mp3');
+        audioAmbiance.loop = true;
+        audioAmbiance.volume = 0; // Arranca en 0 para el fade-in inicial
+
+        const audioEthereal = new Audio('ethereal.mp3');
+        const audioError = new Audio('error.mp3');
+        const audioFin = new Audio('fin.mp3');
+
+        function toggleMusic() {
+            isMusicMuted = !isMusicMuted;
+            const btn = document.getElementById('btn-toggle-music');
+            btn.innerText = isMusicMuted ? 'MÚSICA: OFF' : 'MÚSICA: ON';
+
+            if (isMusicMuted) {
+                fadeVolume(audioAmbiance, 0, 500, true);
+            } else {
+                // Solo reanudamos la música si la encuesta empezó Y no estamos en el silencio de la última pregunta
+                if (surveyStarted && !isLastQuestionActive) {
+                    audioAmbiance.play().catch(() => {});
+                    fadeVolume(audioAmbiance, 0.5, 1000);
+                }
+            }
+        }
+
+        function toggleSFX() {
+            isSfxMuted = !isSfxMuted;
+            const btn = document.getElementById('btn-toggle-sfx');
+            btn.innerText = isSfxMuted ? 'SFX: OFF' : 'SFX: ON';
+        }
+
+        function playSFX(audioElement) {
+            if (!isSfxMuted) {
+                audioElement.currentTime = 0;
+                audioElement.play().catch(() => {});
+            }
+        }
+
+        // Transición suave de volumen con soporte para pausar al llegar a 0
+        function fadeVolume(audio, targetVolume, duration, pauseAtEnd = false) {
+            if (audio.fadeInterval) clearInterval(audio.fadeInterval);
+            
+            const initialVolume = audio.volume;
+            const steps = 20;
+            const stepTime = duration / steps;
+            const volumeStep = (targetVolume - initialVolume) / steps;
+            
+            let currentStep = 0;
+            audio.fadeInterval = setInterval(() => {
+                currentStep++;
+                let nextVol = initialVolume + (volumeStep * currentStep);
+                if (nextVol > 1) nextVol = 1;
+                if (nextVol < 0) nextVol = 0;
+                audio.volume = nextVol;
+                
+                if (currentStep >= steps) {
+                    clearInterval(audio.fadeInterval);
+                    audio.volume = targetVolume;
+                    if (pauseAtEnd && targetVolume === 0) {
+                        audio.pause();
+                    }
+                }
+            }, stepTime);
+        }
+        // ------------------------
+
+        // Sistema de Partículas (Fondo flotante)
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2;
+                this.speedY = Math.random() * 0.3 + 0.05;
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+            update() {
+                this.y -= this.speedY;
+                if (this.y < 0) {
+                    this.y = canvas.height;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = "white";
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function initParticles() {
+            for (let i = 0; i < 100; i++) {
+                particles.push(new Particle());
+            }
+        }
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        initParticles();
+        animateParticles();
+
+        // Lógica de la Encuesta y Máquina de Escribir
+        const questions = [
+            "¿Quién eres?",
+            "¿De dónde provienes?",
+            "¿Cuál es tu objetivo actual?",
+            "¿Crees en algún Dios? Si es así, ¿cuál?",
+            "Si fueras un animal, ¿Cuál serías?",
+            "¿Cuál es tu opinión respecto a las 8 bestias?",
+            "Descríbete con 3 palabras",
+            "¿Cuál es tu comida favorita?",
+            "¿Cuáles diría la gente que son tus mayores defectos?",
+            "¿Cuáles diría la gente que son tus mayores virtudes?",
+            "Nombra al menos 2 personas importantes para ti. ¿Quiénes son y qué hicieron?",
+            "Nombra al menos 2 personas o criaturas que odies. ¿Quiénes son y qué hicieron?",
+            "Cuenta una anécdota que consideres divertida, interesante o relevante para conocerte mejor.",
+            "¿Crees que es posible matar a un Dios?"
+        ];
+
+        let currentIndex = 0;
+        let answers = new Array(questions.length).fill("");
+        let noClicks = 0;
+        let typeInterval;
+        let swapInterval;
+        let swapTimeout;
+
+        const screenIntro = document.getElementById('screen-intro');
+        const screenQuestions = document.getElementById('screen-questions');
+        const screenDownload = document.getElementById('screen-download');
+        const questionText = document.getElementById('question-text');
+        const answerInput = document.getElementById('answer-input');
+        const answerWrapper = document.getElementById('answer-wrapper');
+        const btnNext = document.getElementById('btn-next');
+        const btnPrev = document.getElementById('btn-prev');
+        const navButtons = document.getElementById('nav-buttons');
+        const finalButtons = document.getElementById('final-buttons');
+        const redScreen = document.getElementById('red-screen');
+        const introText = document.getElementById('intro-text');
+        const btnStart = document.getElementById('btn-start');
+
+        // Función de tipeo
+        function typeWriter(text, element, callback, speed = 40) {
+            element.innerHTML = "";
+            let i = 0;
+            clearInterval(typeInterval);
+            
+            const cursor = document.createElement("span");
+            cursor.className = "cursor";
+            
+            typeInterval = setInterval(() => {
+                if (i < text.length) {
+                    element.innerHTML = text.substring(0, i + 1);
+                    element.appendChild(cursor);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                    element.innerHTML = text;
+                    
+                    if (currentIndex === 11 && element.id === "question-text") {
+                        element.innerHTML = element.innerHTML.replace(
+                            "criaturas", 
+                            "<span class='glitch' id='glitch-word' data-text='criaturas'>criaturas</span>"
+                        );
+                        startSubliminalGlitch();
+                    }
+                    if(callback) callback();
+                }
+            }, speed);
+        }
+        
+        function startSubliminalGlitch() {
+            const glitchWord = document.getElementById('glitch-word');
+            if (!glitchWord) return;
+
+            swapInterval = setInterval(() => {
+                if (glitchWord) {
+                    glitchWord.innerHTML = "Deidades";
+                    glitchWord.setAttribute('data-text', 'Deidades');
+                    glitchWord.style.color = "#ff3333"; 
+                    glitchWord.style.textShadow = "0 0 15px red";
+
+                    swapTimeout = setTimeout(() => {
+                        if (glitchWord) {
+                            glitchWord.innerHTML = "criaturas";
+                            glitchWord.setAttribute('data-text', 'criaturas');
+                            glitchWord.style.color = "#fff";
+                            glitchWord.style.textShadow = "none";
+                        }
+                    }, Math.random() * 100 + 50);
+                }
+            }, Math.random() * 1500 + 1000); 
+        }
+
+        window.onload = () => {
+            typeWriter("Te encuentras bajo el efecto de un domo de la verdad.", introText, () => {
+                btnStart.classList.remove('hidden');
+            }, 50);
+        };
+
+        function startSurvey() {
+            surveyStarted = true;
+            playSFX(audioEthereal);
+            
+            // Inicia la música de fondo solo al presionar "Lo entiendo" y si no está silenciada
+            if (!isMusicMuted) {
+                audioAmbiance.play().catch(() => {});
+                fadeVolume(audioAmbiance, 0.5, 1500); // Fade in suave
+            }
+            
+            screenIntro.classList.add('hidden');
+            screenQuestions.classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            clearInterval(swapInterval);
+            clearTimeout(swapTimeout);
+            
+            answerWrapper.classList.remove('visible');
+            answerWrapper.style.overflow = "hidden"; 
+            
+            // Si es la última pregunta, apagar la música ambiente temporalmente
+            if (currentIndex === questions.length - 1) {
+                isLastQuestionActive = true;
+                fadeVolume(audioAmbiance, 0, 2000, true); // Baja a 0 y pausa
+            }
+
+            typeWriter(questions[currentIndex], questionText, () => {
+                answerInput.value = answers[currentIndex];
+                
+                if (currentIndex === questions.length - 1) {
+                    answerInput.classList.add('hidden');
+                    navButtons.classList.add('hidden');
+                    finalButtons.classList.remove('hidden');
+                } else {
+                    answerInput.classList.remove('hidden');
+                    navButtons.classList.remove('hidden');
+                    finalButtons.classList.add('hidden');
+                    
+                    if(currentIndex > 0) {
+                        btnPrev.classList.remove('hidden');
+                    } else {
+                        btnPrev.classList.add('hidden');
+                    }
+                    
+                    checkInput();
+                }
+
+                answerWrapper.classList.add('visible');
+
+                setTimeout(() => {
+                    if (answerWrapper.classList.contains('visible')) {
+                        answerWrapper.style.overflow = "visible";
+                    }
+                    if (currentIndex !== questions.length - 1) {
+                        answerInput.focus();
+                    }
+                }, 800);
+            });
+        }
+
+        function checkInput() {
+            answers[currentIndex] = answerInput.value;
+            btnNext.disabled = answers[currentIndex].trim() === "";
+        }
+
+        function nextQuestion() {
+            playSFX(audioEthereal);
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                loadQuestion();
+            }
+        }
+
+        function prevQuestion() {
+            playSFX(audioEthereal);
+            if (currentIndex > 0) {
+                currentIndex--;
+                loadQuestion();
+            }
+        }
+
+        function handleFinalNo() {
+            playSFX(audioError);
+
+            noClicks++;
+            let opacity = Math.min(noClicks * 0.15, 0.85);
+            redScreen.style.opacity = opacity;
+            
+            document.body.style.transform = `translate(${Math.random()*10 - 5}px, ${Math.random()*10 - 5}px)`;
+            setTimeout(() => document.body.style.transform = "translate(0, 0)", 100);
+        }
+
+        function handleFinalYes() {
+            answers[currentIndex] = "Sí";
+            isLastQuestionActive = false; // El evento de la última pregunta terminó
+            
+            playSFX(audioFin);
+
+            // Cuando termine el audio final, volvemos a encender la música de fondo
+            audioFin.onended = () => {
+                if (!isMusicMuted) {
+                    audioAmbiance.volume = 0;
+                    audioAmbiance.play().catch(() => {});
+                    fadeVolume(audioAmbiance, 0.5, 2000);
+                }
+            };
+            
+            redScreen.style.opacity = 1;
+            redScreen.style.transition = "opacity 0.1s";
+            
+            setTimeout(() => {
+                redScreen.style.transition = "opacity 4s ease";
+                redScreen.style.opacity = 0;
+                
+                screenQuestions.classList.add('hidden');
+                screenDownload.classList.remove('hidden');
+            }, 2000);
+        }
+
+        function downloadTXT() {
+            playSFX(audioEthereal);
+            
+            let content = "--- REGISTRO DEL DOMO DE LA VERDAD ---\n\n";
+            for (let i = 0; i < questions.length; i++) {
+                let cleanQuestion = questions[i].replace(/<[^>]*>?/gm, '');
+                content += `Pregunta: ${cleanQuestion}\n`;
+                content += `Respuesta: ${answers[i]}\n\n`;
+            }
+
+            const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "Registro_Domo_Verdad.txt";
+            link.click();
+        }
+    </script>
+</body>
+</html>
