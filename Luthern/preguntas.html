@@ -92,10 +92,24 @@
         /* Textos brillantes y grandes */
         h1 {
             font-size: 2.2rem;
-            margin-bottom: 40px;
+            margin-bottom: 20px; /* Reducido para darle espacio al subtítulo */
             font-style: italic;
             font-weight: normal;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.4);
+        }
+
+        /* Subtítulo con Fade In */
+        #intro-subtitle {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 40px;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+            letter-spacing: 1px;
+        }
+        
+        #intro-subtitle.visible {
+            opacity: 1;
         }
 
         p.question-text {
@@ -117,20 +131,19 @@
         }
 
         #answer-wrapper.visible {
-            max-height: 350px;
+            max-height: 500px; /* Aumentado por si escriben mucho texto */
             opacity: 1;
             margin-top: 30px;
         }
 
-        /* Área de respuesta flotante */
+        /* Área de respuesta flotante Y auto-expandible */
         textarea {
             width: 100%;
-            height: 150px;
+            min-height: 40px;
             background: transparent;
-            border: none;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            border: none; /* Borde eliminado para que sea totalmente flotante */
             color: #fff;
-            padding: 15px;
+            padding: 10px;
             font-family: inherit;
             font-size: 1.8rem;
             text-align: center;
@@ -139,11 +152,19 @@
             outline: none;
             box-sizing: border-box;
             margin-bottom: 40px;
-            transition: border-color 0.4s, text-shadow 0.4s;
+            transition: text-shadow 0.4s;
+            overflow: hidden; /* Oculta la barra de scroll de forma nativa */
+            
+            /* Ocultar barra de scroll en distintos navegadores por seguridad */
+            -ms-overflow-style: none;  
+            scrollbar-width: none;  
+        }
+
+        textarea::-webkit-scrollbar {
+            display: none;
         }
 
         textarea:focus {
-            border-bottom: 2px solid rgba(255, 255, 255, 0.8);
             text-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
         }
         
@@ -296,6 +317,7 @@
         <!-- Pantalla de Inicio -->
         <div id="screen-intro">
             <h1 id="intro-text"></h1>
+            <p id="intro-subtitle">Duración estimada 15 minutos, responde como si fueras tu personaje. <br>Se recomienda mantener la música y los sonidos activos.</p>
             <div class="btn-container center-btn">
                 <button onclick="startSurvey()" id="btn-start" class="hidden">Lo entiendo</button>
             </div>
@@ -306,7 +328,8 @@
             <p id="question-text" class="question-text"></p>
             
             <div id="answer-wrapper">
-                <textarea id="answer-input" placeholder="" oninput="checkInput()"></textarea>
+                <!-- textarea con auto-expansión vía JS y row=1 para que inicie centrado -->
+                <textarea id="answer-input" placeholder="" oninput="checkInput()" rows="1"></textarea>
                 
                 <div id="nav-buttons" class="btn-container center-btn">
                     <button id="btn-prev" onclick="prevQuestion()" class="hidden">Anterior</button>
@@ -339,7 +362,7 @@
 
         const audioAmbiance = new Audio('ambiance.mp3');
         audioAmbiance.loop = true;
-        audioAmbiance.volume = 0; // Arranca en 0 para el fade-in inicial
+        audioAmbiance.volume = 0; 
 
         const audioEthereal = new Audio('ethereal.mp3');
         const audioError = new Audio('error.mp3');
@@ -353,7 +376,6 @@
             if (isMusicMuted) {
                 fadeVolume(audioAmbiance, 0, 500, true);
             } else {
-                // Solo reanudamos la música si la encuesta empezó Y no estamos en el silencio de la última pregunta
                 if (surveyStarted && !isLastQuestionActive) {
                     audioAmbiance.play().catch(() => {});
                     fadeVolume(audioAmbiance, 0.5, 1000);
@@ -374,7 +396,6 @@
             }
         }
 
-        // Transición suave de volumen con soporte para pausar al llegar a 0
         function fadeVolume(audio, targetVolume, duration, pauseAtEnd = false) {
             if (audio.fadeInterval) clearInterval(audio.fadeInterval);
             
@@ -400,7 +421,6 @@
                 }
             }, stepTime);
         }
-        // ------------------------
 
         // Sistema de Partículas (Fondo flotante)
         const canvas = document.getElementById('particle-canvas');
@@ -482,6 +502,7 @@
         let swapTimeout;
 
         const screenIntro = document.getElementById('screen-intro');
+        const introSubtitle = document.getElementById('intro-subtitle');
         const screenQuestions = document.getElementById('screen-questions');
         const screenDownload = document.getElementById('screen-download');
         const questionText = document.getElementById('question-text');
@@ -494,6 +515,12 @@
         const redScreen = document.getElementById('red-screen');
         const introText = document.getElementById('intro-text');
         const btnStart = document.getElementById('btn-start');
+
+        // Función de auto-expansión del textarea (para que crezca en vez de tener barra de scroll)
+        function autoResizeTextarea() {
+            answerInput.style.height = 'auto'; // Reiniciamos altura para que calcule bien
+            answerInput.style.height = answerInput.scrollHeight + 'px'; // Expandimos
+        }
 
         // Función de tipeo
         function typeWriter(text, element, callback, speed = 40) {
@@ -549,7 +576,10 @@
         }
 
         window.onload = () => {
-            typeWriter("Estamos en Luthern. Te encuentras bajo el efecto de un domo de la verdad. (Duración esperada 15 minutos, responde como tu personaje)", introText, () => {
+            // Nuevo mensaje inicial
+            typeWriter("Estamos en Luthern. Te encuentras bajo el efecto de un domo de la verdad.", introText, () => {
+                // Hacemos aparecer el subtítulo suavemente 
+                introSubtitle.classList.add('visible');
                 btnStart.classList.remove('hidden');
             }, 50);
         };
@@ -558,10 +588,9 @@
             surveyStarted = true;
             playSFX(audioEthereal);
             
-            // Inicia la música de fondo solo al presionar "Lo entiendo" y si no está silenciada
             if (!isMusicMuted) {
                 audioAmbiance.play().catch(() => {});
-                fadeVolume(audioAmbiance, 0.5, 1500); // Fade in suave
+                fadeVolume(audioAmbiance, 0.5, 1500);
             }
             
             screenIntro.classList.add('hidden');
@@ -576,10 +605,9 @@
             answerWrapper.classList.remove('visible');
             answerWrapper.style.overflow = "hidden"; 
             
-            // Si es la última pregunta, apagar la música ambiente temporalmente
             if (currentIndex === questions.length - 1) {
                 isLastQuestionActive = true;
-                fadeVolume(audioAmbiance, 0, 2000, true); // Baja a 0 y pausa
+                fadeVolume(audioAmbiance, 0, 2000, true); 
             }
 
             typeWriter(questions[currentIndex], questionText, () => {
@@ -605,18 +633,22 @@
 
                 answerWrapper.classList.add('visible');
 
+                // Necesitamos un pequeño timeout para que el DOM renderice antes de recalcular la altura
                 setTimeout(() => {
+                    if (currentIndex !== questions.length - 1) {
+                        autoResizeTextarea();
+                        answerInput.focus();
+                    }
+                    
                     if (answerWrapper.classList.contains('visible')) {
                         answerWrapper.style.overflow = "visible";
-                    }
-                    if (currentIndex !== questions.length - 1) {
-                        answerInput.focus();
                     }
                 }, 800);
             });
         }
 
         function checkInput() {
+            autoResizeTextarea(); // Llamada en oninput para que crezca
             answers[currentIndex] = answerInput.value;
             btnNext.disabled = answers[currentIndex].trim() === "";
         }
@@ -650,11 +682,10 @@
 
         function handleFinalYes() {
             answers[currentIndex] = "Sí";
-            isLastQuestionActive = false; // El evento de la última pregunta terminó
+            isLastQuestionActive = false; 
             
             playSFX(audioFin);
 
-            // Cuando termine el audio final, volvemos a encender la música de fondo
             audioFin.onended = () => {
                 if (!isMusicMuted) {
                     audioAmbiance.volume = 0;
