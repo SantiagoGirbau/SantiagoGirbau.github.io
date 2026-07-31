@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYSTEM // SELECT INTERFACE</title>
+    <style>
+        :root {
+            --bg-page: #050509;
+            --card-bg: rgba(10, 15, 25, 0.9);
+            --border-primary: #00ffff;
+            --border-secondary: #ff00ff;
+            --text-main: #e0f7fa;
+            --text-muted: #607d8b;
+            --font-main: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            color: var(--border-primary);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .menu-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .btn-card {
+            flex: 1 1 220px;
+            background: var(--card-bg);
+            border: 2px solid var(--border-primary);
+            padding: 25px 20px;
+            text-decoration: none;
+            color: var(--text-main);
+            text-align: center;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+        }
+
+        .btn-card:hover {
+            background: rgba(0, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .btn-card.luthern {
+            border-color: var(--border-secondary);
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.1);
+        }
+
+        .btn-card.luthern:hover {
+            background: rgba(255, 0, 255, 0.1);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+        }
+
+        .title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>SYSTEM//SELECT_INTERFACE</h1>
+
+    <main class="menu-container">
+        <!-- Apunta al index.html dentro de LancerTracker -->
+        <a href="LancerTracker/index.html" class="btn-card">
+            <span class="title">LANCER TRACKER</span>
+            <span class="subtitle">// PILOT_INTERFACE</span>
+        </a>
+
+        <!-- Apunta directamente a preguntas.html dentro de Luthern -->
+        <a href="Luthern/preguntas.html" class="btn-card luthern">
+            <span class="title">LUTHERN</span>
+            <span class="subtitle">// PREGUNTAS_MODULE</span>
+        </a>
+    </main>
+
+</body>
+</html>
